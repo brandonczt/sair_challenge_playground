@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAIR Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6B46C1',
+                        secondary: '#9F7AEA',
+                        accent: '#805AD5',
+                        neutral: '#F7FAFC',
+                        'neutral-dark': '#E2E8F0',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .scrollbar-thin {
+                scrollbar-width: thin;
+            }
+            .scrollbar-thin::-webkit-scrollbar {
+                width: 6px;
+            }
+            .scrollbar-thin::-webkit-scrollbar-track {
+                background: #f1f1f1;
+            }
+            .scrollbar-thin::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 3px;
+            }
+            .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">SAIR Challenge</h1>
+            <div class="bg-white rounded-lg shadow-sm px-4 py-2 border border-gray-200">
+                <div class="text-xs text-gray-500">OpenRouter API Key</div>
+                <input type="password" id="api-key" placeholder="Enter your API key" class="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Left Sidebar -->
+            <div class="w-full lg:w-1/3 space-y-6">
+                <!-- Template -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-3">Template</h2>
+                    <select id="template-select" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="official">Official Initial Evaluation</option>
+                    </select>
+                </div>
+
+                <!-- Cheatsheet -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-lg font-semibold">Cheatsheet</h2>
+                        <div class="flex space-x-2">
+                            <button id="edit-cheatsheet" class="text-primary text-sm font-medium">Edit</button>
+                            <button id="add-cheatsheet" class="text-primary text-sm font-medium">+ New</button>
+                        </div>
+                    </div>
+                    <select id="cheatsheet-select" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="none">None (no cheatsheet)</option>
+                    </select>
+                    <div id="cheatsheet-editor" class="mt-3 hidden">
+                        <div class="mb-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Cheatsheet Name:</label>
+                            <input type="text" id="cheatsheet-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Enter cheatsheet name">
+                        </div>
+                        <textarea id="cheatsheet-content" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary h-40" placeholder="Enter your cheatsheet here..."></textarea>
+                        <div class="flex justify-end mt-2 space-x-2">
+                            <button id="cancel-cheatsheet" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors">Cancel</button>
+                            <button id="save-cheatsheet" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-accent transition-colors">Save</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prompt Preview -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-3">Prompt Preview</h2>
+                    <div id="prompt-preview" class="p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm max-h-48 overflow-y-auto scrollbar-thin">
+                        <p>Select a template, cheatsheet, and problem to see the generated prompt here.</p>
+                    </div>
+                </div>
+
+                <!-- Model -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-3">Model</h2>
+                    <select id="model-select" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="openai/gpt-oss-120b">OpenAI GPT-OSS-120B</option>
+                        <option value="google/gemini-3.1-flash-lite-preview">Google Gemini 3.1 Flash Lite</option>
+                        <option value="meta-llama/llama-3.3-70b-instruct">Meta Llama 3.3 70B Instruct</option>
+                        <option value="x-ai/grok-4.1-fast">X-AI Grok 4.1 Fast</option>
+                    </select>
+                </div>
+
+                <!-- Problems -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-3">Problems</h2>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Number of problems to generate:</label>
+                        <input type="number" id="problem-count" min="1" max="100" value="10" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <button id="generate-problems" class="mt-2 w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-accent transition-colors">Generate Problems</button>
+                    </div>
+
+                    <!-- Custom Problem -->
+                    <div class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
+                        <h3 class="text-sm font-medium mb-2">Custom Problem</h3>
+                        <div class="space-y-2">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Equation 1:</label>
+                                <input type="text" id="custom-equation1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g., x = x * y">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Equation 2:</label>
+                                <input type="text" id="custom-equation2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g., x * y = y * x">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Expected Verdict:</label>
+                                <select id="custom-verdict" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <option value="TRUE">TRUE (Equation 1 implies Equation 2)</option>
+                                    <option value="FALSE">FALSE (Equation 1 does not imply Equation 2)</option>
+                                </select>
+                            </div>
+                            <button id="add-custom-problem" class="w-full bg-secondary text-white px-4 py-2 rounded-md hover:bg-accent transition-colors">Add Custom Problem</button>
+                        </div>
+                    </div>
+
+                    <div id="problems-list" class="max-h-96 overflow-y-auto scrollbar-thin border border-gray-200 rounded-md">
+                        <div class="p-4 text-center text-gray-500">
+                            Click "Generate Problems" or "Add Custom Problem" to create test cases
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 mb-4">
+                        <button id="select-all-problems" class="flex-1 bg-secondary text-white px-4 py-2 rounded-md hover:bg-accent transition-colors text-sm">Select All</button>
+                        <button id="deselect-all-problems" class="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors text-sm">Deselect All</button>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Problem Sets:</label>
+                        <select id="problem-set-select" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="">Select a problem set...</option>
+                        </select>
+                        <div class="flex space-x-2 mt-2">
+                            <button id="save-problem-set" class="flex-1 bg-secondary text-white px-4 py-2 rounded-md hover:bg-accent transition-colors text-sm">Save Selected as Set</button>
+                            <button id="load-problem-set" class="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors text-sm">Load Set</button>
+                            <button id="delete-problem-set" class="flex-1 bg-red-200 text-red-700 px-4 py-2 rounded-md hover:bg-red-300 transition-colors text-sm">Delete Set</button>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 mt-4">
+                        <button id="run-button" class="flex-1 bg-primary text-white px-4 py-2 rounded-md hover:bg-accent transition-colors font-medium">Run</button>
+                        <button id="cancel-button" class="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors font-medium">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Content -->
+            <div class="w-full lg:w-2/3 space-y-6">
+                <!-- Tabs -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div class="flex border-b border-gray-200">
+                        <button id="tab-run" class="px-6 py-3 font-medium text-primary border-b-2 border-primary">Run</button>
+                        <button id="tab-history" class="px-6 py-3 font-medium text-gray-500 hover:text-gray-700">History</button>
+                    </div>
+
+                    <!-- Run Tab Content -->
+                    <div id="run-content" class="p-6">
+                        <div class="flex items-center justify-center h-64 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                            <div class="text-center">
+                                <i class="fa fa-arrow-left text-4xl text-gray-400 mb-3"></i>
+                                <p class="text-gray-500">Select a template, cheatsheet, and some problems, then click Run to see results.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- History Tab Content -->
+                    <div id="history-content" class="p-6 hidden">
+                        <div class="flex flex-wrap gap-4 mb-4">
+                            <h2 class="text-lg font-semibold">Operation History</h2>
+                            <div class="flex space-x-2 flex-grow justify-end">
+                                <select id="history-model-filter" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
+                                    <option value="all">All Models</option>
+                                    <option value="openai/gpt-oss-120b">OpenAI GPT-OSS-120B</option>
+                                    <option value="google/gemini-3.1-flash-lite-preview">Google Gemini 3.1 Flash Lite</option>
+                                    <option value="meta-llama/llama-3.3-70b-instruct">Meta Llama 3.3 70B Instruct</option>
+                                    <option value="x-ai/grok-4.1-fast">X-AI Grok 4.1 Fast</option>
+                                </select>
+                                <select id="history-cheatsheet-filter" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
+                                    <option value="all">All Cheatsheets</option>
+                                </select>
+                                <button id="history-filter-button" class="px-3 py-1 bg-primary text-white rounded-md text-sm">Filter</button>
+                            </div>
+                        </div>
+
+                        <div id="history-list" class="space-y-4">
+                            <div class="border border-gray-200 rounded-lg overflow-hidden">
+                                <div class="bg-gray-50 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
+                                    <div class="font-medium">google/gemini-3.1-flash-lite-preview</div>
+                                    <div class="text-sm text-gray-500">1/1 (100%) | 2026-03-17 14:00:46</div>
+                                </div>
+                                <div class="px-4 py-3">
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+                                        <div class="bg-green-500 h-2 rounded-full" style="width: 100%"></div>
+                                    </div>
+                                    <div class="grid grid-cols-7 gap-4 mb-4 text-sm">
+                                        <div>Model</div>
+                                        <div>Template</div>
+                                        <div>Cheatsheet</div>
+                                        <div>Count</div>
+                                        <div>Accuracy</div>
+                                        <div>Avg Cost</div>
+                                        <div>Avg Time</div>
+                                        <div>google/gemini-3.1-flash-lite-preview</div>
+                                        <div>official</div>
+                                        <div>none</div>
+                                        <div>1</div>
+                                        <div class="text-green-600 font-medium">100.0%</div>
+                                        <div>$0.0008</div>
+                                        <div>3.5s</div>
+                                    </div>
+                                    <div class="border-t border-gray-200 pt-4">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <div class="font-medium">google/gemini-3.1-flash-lite-preview</div>
+                                            <div class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium">CORRECT</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="text-sm font-medium mb-1">hard#0</div>
+                                            <div class="flex items-center space-x-2">
+                                                <input type="text" value="x = y * (y * ((x * y) * x))" class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm" readonly>
+                                                <span class="text-gray-500">→</span>
+                                                <input type="text" value="x * y = ((z * x) * w) * y" class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="text-sm font-medium mb-1">Output: FALSE | Expected: FALSE</div>
+                                        </div>
+                                        <div class="grid grid-cols-4 gap-4 mb-4 text-sm">
+                                            <div class="bg-gray-50 p-2 rounded text-center">
+                                                <div class="font-medium">3.5s</div>
+                                                <div class="text-xs text-gray-500">TIME</div>
+                                            </div>
+                                            <div class="bg-gray-50 p-2 rounded text-center">
+                                                <div class="font-medium">$0.0008</div>
+                                                <div class="text-xs text-gray-500">COST</div>
+                                            </div>
+                                            <div class="bg-gray-50 p-2 rounded text-center">
+                                                <div class="font-medium">133</div>
+                                                <div class="text-xs text-gray-500">IN</div>
+                                            </div>
+                                            <div class="bg-gray-50 p-2 rounded text-center">
+                                                <div class="font-medium">535</div>
+                                                <div class="text-xs text-gray-500">OUT</div>
+                                            </div>
+                                        </div>
+                                        <div class="space-y-2">
+                                            <button class="text-primary text-sm font-medium">Hide response ▲</button>
+                                            <button class="text-primary text-sm font-medium">Hide prompt ▲</button>
+                                            <button class="text-primary text-sm font-medium">Config ▼</button>
+                                        </div>
+                                        <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm">
+                                            <p>You are a mathematician specializing in equational theories of magmas.</p>
+                                            <p>Your task is to determine whether Equation 1 (x = y * (y * ((x * y) * x))) implies Equation 2 (x * y = ((z * x) * w) * y) over all magmas.</p>
+                                            <p class="mt-2">Output format (use exact headers without any additional text or formatting):</p>
+                                            <p>VERDICT: must be exactly TRUE or FALSE (in the same line).</p>
+                                            <p>REASONING: must be non-empty.</p>
+                                            <p>PROOF: required if VERDICT is TRUE, empty otherwise.</p>
+                                            <p>COUNTEREXAMPLE: required if VERDICT is FALSE, empty otherwise.</p>
+                                        </div>
+                                        <div class="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-md text-sm">
+                                            <p>VERDICT: FALSE</p>
+                                            <p class="mt-2">REASONING: Equation 1 is satisfied by the trivial magma (a singleton set), but it does not impose sufficient constraints on the operation to force the identity required by Equation 2. Equation 2 asserts that the product x*y is independent of x and y in a specific way (it must be equal to a term involving arbitrary variables z and w), which is not a consequence of the structure defined by Equation 1.</p>
+                                            <p class="mt-2">PROOF:</p>
+                                            <p class="mt-2">COUNTEREXAMPLE: Consider the magma (M,*) where M = {a,b} and the operation is defined by x * y = x for all x,y ∈ M.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let equations = [];
+        let implications = [];
+        let generatedProblems = [];
+        let cheatsheets = [
+            { id: 'none', name: 'None (no cheatsheet)', content: '' }
+        ];
+        let problemSets = [];
+        let isRunning = false;
+        let abortController = null;
+
+        // Load equations and implications
+        async function loadData() {
+            try {
+                // Load equations
+                const equationsResponse = await fetch('equations.txt');
+                const equationsText = await equationsResponse.text();
+                equations = equationsText.split('\n').filter(line => line.trim() !== '');
+                
+                // Load implications
+                const implicationsResponse = await fetch('export_raw_implications_2026_3_17.csv');
+                const implicationsText = await implicationsResponse.text();
+                const lines = implicationsText.split('\n');
+                implications = lines.map(line => {
+                    if (!line.trim()) return [];
+                    return line.split(',').map(num => parseInt(num));
+                }).filter(row => row.length > 0);
+                
+                console.log(`Loaded ${equations.length} equations and ${implications.length} implication rows`);
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Error loading data. Please check the console for details.');
+            }
+        }
+
+        // Generate problems
+        function generateProblems(count) {
+            if (equations.length === 0 || implications.length === 0) {
+                alert('Data not loaded yet. Please wait.');
+                return;
+            }
+
+            generatedProblems = [];
+            const problemsList = document.getElementById('problems-list');
+            problemsList.innerHTML = '';
+
+            for (let i = 0; i < count; i++) {
+                // Randomly select two equations
+                const m = Math.floor(Math.random() * equations.length) + 1; // 1-based index
+                const n = Math.floor(Math.random() * equations.length) + 1; // 1-based index
+                
+                // Get implication value
+                const implicationValue = implications[m-1][n-1];
+                const implies = implicationValue > 0;
+                const expectedVerdict = implies ? 'TRUE' : 'FALSE';
+
+                const problem = {
+                    id: i + 1,
+                    equation1: {
+                        id: m,
+                        text: equations[m-1].replace(/◇/g, '*')
+                    },
+                    equation2: {
+                        id: n,
+                        text: equations[n-1].replace(/◇/g, '*')
+                    },
+                    implies: implies,
+                    expectedVerdict: expectedVerdict
+                };
+
+                generatedProblems.push(problem);
+
+                // Add to UI
+                const problemItem = document.createElement('div');
+                problemItem.className = 'p-3 border-b border-gray-200 hover:bg-gray-50';
+                problemItem.innerHTML = `
+                    <div class="flex items-center">
+                        <input type="checkbox" class="problem-checkbox mr-3" data-id="${i}" checked>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium">Problem #${i+1} (${m} → ${n})</div>
+                            <div class="text-xs text-gray-600">${problem.equation1.text} → ${problem.equation2.text}</div>
+                            <div class="text-xs text-gray-500 mt-1">Expected: ${expectedVerdict} (${implies ? 'Implies' : 'Does not imply'})</div>
+                        </div>
+                    </div>
+                `;
+                problemsList.appendChild(problemItem);
+            }
+        }
+
+        // Update prompt preview
+        function updatePromptPreview() {
+            const cheatsheetId = document.getElementById('cheatsheet-select').value;
+            const cheatsheet = cheatsheets.find(c => c.id === cheatsheetId);
+            
+            // Get the first selected problem
+            const selectedProblem = generatedProblems.find((_, index) => {
+                const checkbox = document.querySelector(`.problem-checkbox[data-id="${index}"]`);
+                return checkbox && checkbox.checked;
+            });
+            
+            if (!selectedProblem) {
+                document.getElementById('prompt-preview').innerHTML = `
+                    <p>Select at least one problem to see the generated prompt here.</p>
+                `;
+                return;
+            }
+            
+            // Generate prompt from template
+            fetch('prompt.jinja2')
+                .then(response => response.text())
+                .then(templateText => {
+                    let prompt = templateText
+                        .replace('{{ equation1 }}', selectedProblem.equation1.text)
+                        .replace('{{ equation2 }}', selectedProblem.equation2.text);
+                    
+                    if (cheatsheet && cheatsheet.content) {
+                        prompt = prompt.replace('{% if cheatsheet is defined and cheatsheet %}\n{{ cheatsheet }}\n{% endif %}', cheatsheet.content);
+                    } else {
+                        prompt = prompt.replace('{% if cheatsheet is defined and cheatsheet %}\n{{ cheatsheet }}\n{% endif %}', '');
+                    }
+                    
+                    document.getElementById('prompt-preview').innerHTML = prompt.split('\n').map(line => `<p>${line}</p>`).join('');
+                });
+        }
+
+        // Run selected problems
+        async function runProblems() {
+            const selectedProblems = generatedProblems.filter((_, index) => {
+                const checkbox = document.querySelector(`.problem-checkbox[data-id="${index}"]`);
+                return checkbox && checkbox.checked;
+            });
+
+            if (selectedProblems.length === 0) {
+                alert('Please select at least one problem.');
+                return;
+            }
+
+            const apiKey = document.getElementById('api-key').value;
+            if (!apiKey) {
+                alert('Please enter your OpenRouter API key.');
+                return;
+            }
+
+            const model = document.getElementById('model-select').value;
+            const cheatsheetId = document.getElementById('cheatsheet-select').value;
+            const cheatsheet = cheatsheets.find(c => c.id === cheatsheetId);
+
+            isRunning = true;
+            abortController = new AbortController();
+
+            const runContent = document.getElementById('run-content');
+            runContent.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+                    <p class="text-gray-600">Running ${selectedProblems.length} problems with ${model}...</p>
+                    <div class="w-full max-w-md mt-4">
+                        <div class="flex justify-between text-sm text-gray-600 mb-1">
+                            <span>Progress</span>
+                            <span id="progress-text">0/${selectedProblems.length}</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="progress-bar" class="bg-primary h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <button id="cancel-run" class="mt-4 text-red-600 text-sm font-medium">Cancel</button>
+                </div>
+            `;
+
+            // Add cancel event listener
+            document.getElementById('cancel-run').addEventListener('click', cancelRun);
+
+            try {
+                const results = [];
+                
+                for (let i = 0; i < selectedProblems.length; i++) {
+                    const problem = selectedProblems[i];
+                    
+                    if (abortController.signal.aborted) {
+                        throw new Error('Task cancelled');
+                    }
+
+                    // Update progress
+                    const progress = ((i + 1) / selectedProblems.length * 100).toFixed(0);
+                    document.getElementById('progress-bar').style.width = `${progress}%`;
+                    document.getElementById('progress-text').textContent = `${i + 1}/${selectedProblems.length}`;
+
+                    // Generate prompt from template
+                    const template = await fetch('prompt.jinja2');
+                    const templateText = await template.text();
+                    let prompt = templateText
+                        .replace('{{ equation1 }}', problem.equation1.text)
+                        .replace('{{ equation2 }}', problem.equation2.text);
+                    
+                    if (cheatsheet && cheatsheet.content) {
+                        prompt = prompt.replace('{% if cheatsheet is defined and cheatsheet %}\n{{ cheatsheet }}\n{% endif %}', cheatsheet.content);
+                    } else {
+                        prompt = prompt.replace('{% if cheatsheet is defined and cheatsheet %}\n{{ cheatsheet }}\n{% endif %}', '');
+                    }
+
+                    // Call OpenRouter API
+                    const startTime = Date.now();
+                    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: model,
+                            messages: [
+                                {
+                                    role: 'user',
+                                    content: prompt
+                                }
+                            ],
+                            temperature: 0.2,
+                            max_tokens: 1000
+                        }),
+                        signal: abortController.signal
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API error: ${response.status} ${await response.text()}`);
+                    }
+
+                    const data = await response.json();
+                    const endTime = Date.now();
+                    const time = ((endTime - startTime) / 1000).toFixed(1);
+                    
+                    const modelOutput = data.choices[0].message.content;
+                    
+                    // Get real token usage from API response
+                    const tokensIn = data.usage?.prompt_tokens || 0;
+                    const tokensOut = data.usage?.completion_tokens || 0;
+                    
+                    // Extract verdict from model output
+                    let verdict = 'UNKNOWN';
+                    if (modelOutput) {
+                        const verdictMatch = modelOutput.match(/VERDICT:\s*(TRUE|FALSE)/i);
+                        verdict = verdictMatch ? verdictMatch[1].toUpperCase() : 'UNKNOWN';
+                    }
+                    
+                    // Determine if the model's answer is correct
+                    const isCorrect = verdict === problem.expectedVerdict;
+
+                    // Get real cost from API response if available
+                    let cost = 0;
+                    if (data.usage?.total_cost !== undefined) {
+                        // Use real cost from API response
+                        cost = data.usage.total_cost.toFixed(6);
+                    } else if (data.usage?.cost !== undefined) {
+                        // Fallback to cost field
+                        cost = data.usage.cost.toFixed(6);
+                    } else {
+                        // Calculate cost (approximate based on model) as fallback
+                        console.log("fallback cost calculation");
+                        if (model.includes('gpt-4')) {
+                            cost = (tokensIn * 0.00003 + tokensOut * 0.00012).toFixed(6);
+                        } else if (model.includes('gemini')) {
+                            cost = (tokensIn * 0.0000015 + tokensOut * 0.000006).toFixed(6);
+                        } else if (model.includes('claude')) {
+                            cost = (tokensIn * 0.000018 + tokensOut * 0.000054).toFixed(6);
+                        } else {
+                            cost = (tokensIn * 0.000001 + tokensOut * 0.000004).toFixed(6);
+                        }
+                    }
+
+                    results.push({
+                        problem: problem,
+                        model: model,
+                        cheatsheet: cheatsheetId,
+                        prompt: prompt,
+                        output: modelOutput,
+                        isCorrect: isCorrect,
+                        time: time,
+                        cost: cost,
+                        tokensIn: tokensIn,
+                        tokensOut: tokensOut
+                    });
+                }
+
+                // Display results
+                displayResults(results);
+                
+                // Save to local storage
+                saveHistory(results);
+            } catch (error) {
+                if (error.name === 'AbortError' || error.message === 'Task cancelled') {
+                    const runContent = document.getElementById('run-content');
+                    runContent.innerHTML = `
+                        <div class="flex items-center justify-center h-64 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                            <div class="text-center">
+                                <i class="fa fa-info-circle text-4xl text-blue-400 mb-3"></i>
+                                <p class="text-blue-500">Task cancelled</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    console.error('Error running problems:', error);
+                    const runContent = document.getElementById('run-content');
+                    runContent.innerHTML = `
+                        <div class="flex items-center justify-center h-64 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                            <div class="text-center">
+                                <i class="fa fa-exclamation-circle text-4xl text-red-400 mb-3"></i>
+                                <p class="text-red-500">Error: ${error.message}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            } finally {
+                isRunning = false;
+                abortController = null;
+            }
+        }
+
+        // Cancel run
+        function cancelRun() {
+            if (abortController) {
+                abortController.abort();
+            }
+        }
+
+        // Save history to local storage
+        function saveHistory(results) {
+            if (results.length === 0) return;
+            
+            const history = JSON.parse(localStorage.getItem('magma-tester-history') || '[]');
+            
+            const historyItem = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                results: results
+            };
+            
+            history.unshift(historyItem);
+            
+            // Keep only last 50 history items
+            if (history.length > 50) {
+                history.splice(50);
+            }
+            
+            localStorage.setItem('magma-tester-history', JSON.stringify(history));
+        }
+
+        // Load history from local storage
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('magma-tester-history') || '[]');
+            return history;
+        }
+
+        // Add custom problem
+        function addCustomProblem() {
+            const equation1 = document.getElementById('custom-equation1').value.trim();
+            const equation2 = document.getElementById('custom-equation2').value.trim();
+            const expectedVerdict = document.getElementById('custom-verdict').value;
+
+            if (!equation1 || !equation2) {
+                alert('Please enter both equations.');
+                return;
+            }
+
+            const problem = {
+                id: generatedProblems.length + 1,
+                equation1: {
+                    id: 'custom',
+                    text: equation1
+                },
+                equation2: {
+                    id: 'custom',
+                    text: equation2
+                },
+                implies: expectedVerdict === 'TRUE',
+                expectedVerdict: expectedVerdict
+            };
+
+            generatedProblems.push(problem);
+
+            // Add to UI
+            const problemsList = document.getElementById('problems-list');
+            
+            // If it's the first problem, clear the placeholder
+            if (generatedProblems.length === 1) {
+                problemsList.innerHTML = '';
+            }
+
+            const problemItem = document.createElement('div');
+            problemItem.className = 'p-3 border-b border-gray-200 hover:bg-gray-50';
+            problemItem.innerHTML = `
+                <div class="flex items-center">
+                    <input type="checkbox" class="problem-checkbox mr-3" data-id="${generatedProblems.length - 1}" checked>
+                    <div class="flex-1">
+                        <div class="text-sm font-medium">Custom Problem #${generatedProblems.length}</div>
+                        <div class="text-xs text-gray-600">${equation1} → ${equation2}</div>
+                        <div class="text-xs text-gray-500 mt-1">Expected: ${expectedVerdict} (${expectedVerdict === 'TRUE' ? 'Implies' : 'Does not imply'})</div>
+                    </div>
+                </div>
+            `;
+            problemsList.appendChild(problemItem);
+
+            // Clear form
+            document.getElementById('custom-equation1').value = '';
+            document.getElementById('custom-equation2').value = '';
+
+            // Update prompt preview
+            updatePromptPreview();
+        }
+
+        // Display results
+        function displayResults(results) {
+            const runContent = document.getElementById('run-content');
+            
+            if (results.length === 0) {
+                runContent.innerHTML = `
+                    <div class="flex items-center justify-center h-64 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                        <div class="text-center">
+                            <i class="fa fa-exclamation-circle text-4xl text-gray-400 mb-3"></i>
+                            <p class="text-gray-500">No results to display.</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <div class="space-y-6">
+            `;
+
+            for (const result of results) {
+                const problem = result.problem;
+                const isCorrect = result.isCorrect;
+                
+                html += `
+                    <div class="border border-gray-200 rounded-lg overflow-hidden">
+                        <div class="bg-gray-50 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
+                            <div class="font-medium">${result.model}</div>
+                            <div class="${isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} px-2 py-1 rounded text-sm font-medium">
+                                ${isCorrect ? 'CORRECT' : 'INCORRECT'}
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <div class="mb-3">
+                                <div class="text-sm font-medium mb-1">Problem #${problem.id}</div>
+                                <div class="flex items-center space-x-2">
+                                    <input type="text" value="${problem.equation1.text}" class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm" readonly>
+                                    <span class="text-gray-500">→</span>
+                                    <input type="text" value="${problem.equation2.text}" class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm" readonly>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="text-sm font-medium mb-1">Output: ${result.output.split('\n')[0].split(': ')[1]} | Expected: ${problem.expectedVerdict}</div>
+                            </div>
+                            <div class="grid grid-cols-4 gap-4 mb-4 text-sm">
+                                <div class="bg-gray-50 p-2 rounded text-center">
+                                    <div class="font-medium">${result.time}s</div>
+                                    <div class="text-xs text-gray-500">TIME</div>
+                                </div>
+                                <div class="bg-gray-50 p-2 rounded text-center">
+                                    <div class="font-medium">$${result.cost}</div>
+                                    <div class="text-xs text-gray-500">COST</div>
+                                </div>
+                                <div class="bg-gray-50 p-2 rounded text-center">
+                                    <div class="font-medium">${result.tokensIn}</div>
+                                    <div class="text-xs text-gray-500">IN</div>
+                                </div>
+                                <div class="bg-gray-50 p-2 rounded text-center">
+                                    <div class="font-medium">${result.tokensOut}</div>
+                                    <div class="text-xs text-gray-500">OUT</div>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <button class="text-primary text-sm font-medium show-response" data-id="${problem.id}">Show response ▼</button>
+                                <button class="text-primary text-sm font-medium show-prompt" data-id="${problem.id}">Show prompt ▼</button>
+                            </div>
+                            <div class="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-md text-sm response-content hidden" id="response-${problem.id}">
+                                ${result.output.split('\n').map(line => `<p>${line}</p>`).join('')}
+                            </div>
+                            <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm prompt-content hidden" id="prompt-${problem.id}">
+                                ${result.prompt.split('\n').map(line => `<p>${line}</p>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
+                </div>
+            `;
+
+            runContent.innerHTML = html;
+
+            // Add event listeners for show/hide buttons
+            document.querySelectorAll('.show-response').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const content = document.getElementById(`response-${id}`);
+                    content.classList.toggle('hidden');
+                    this.textContent = content.classList.contains('hidden') ? 'Show response ▼' : 'Hide response ▲';
+                });
+            });
+
+            document.querySelectorAll('.show-prompt').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const content = document.getElementById(`prompt-${id}`);
+                    content.classList.toggle('hidden');
+                    this.textContent = content.classList.contains('hidden') ? 'Show prompt ▼' : 'Hide prompt ▲';
+                });
+            });
+
+            // Add to history
+            addToHistory(results);
+        }
+
+        // Add results to history
+        function addToHistory(results) {
+            if (results.length === 0) return;
+
+            const historyList = document.getElementById('history-list');
+            const firstResult = results[0];
+            const accuracy = (results.filter(r => r.isCorrect).length / results.length * 100).toFixed(1);
+            const avgTime = (results.reduce((sum, r) => sum + parseFloat(r.time), 0) / results.length).toFixed(1);
+            const avgCost = (results.reduce((sum, r) => sum + parseFloat(r.cost), 0) / results.length).toFixed(4);
+            const timestamp = new Date().toLocaleString();
+
+            const historyItem = document.createElement('div');
+            historyItem.className = 'border border-gray-200 rounded-lg overflow-hidden mb-4';
+            historyItem.innerHTML = `
+                <div class="bg-gray-50 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
+                    <div class="font-medium">${firstResult.model}</div>
+                    <div class="text-sm text-gray-500">${results.length}/${results.length} (100%) | ${timestamp}</div>
+                </div>
+                <div class="px-4 py-3">
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+                        <div class="bg-green-500 h-2 rounded-full" style="width: 100%"></div>
+                    </div>
+                    <div class="grid grid-cols-7 gap-4 mb-4 text-sm">
+                        <div>Model</div>
+                        <div>Template</div>
+                        <div>Cheatsheet</div>
+                        <div>Count</div>
+                        <div>Accuracy</div>
+                        <div>Avg Cost</div>
+                        <div>Avg Time</div>
+                        <div>${firstResult.model}</div>
+                        <div>official</div>
+                        <div>${firstResult.cheatsheet}</div>
+                        <div>${results.length}</div>
+                        <div class="text-green-600 font-medium">${accuracy}%</div>
+                        <div>$${avgCost}</div>
+                        <div>${avgTime}s</div>
+                    </div>
+                    <div class="border-t border-gray-200 pt-4">
+                        ${results.map(result => {
+                            const problem = result.problem;
+                            return `
+                                <div class="mb-4 pb-4 border-b border-gray-100 last:border-b-0 last:mb-0 last:pb-0">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="font-medium">${result.model}</div>
+                                        <div class="${result.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} px-2 py-1 rounded text-sm font-medium">
+                                            ${result.isCorrect ? 'CORRECT' : 'INCORRECT'}
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="text-sm font-medium mb-1">Problem #${problem.id}</div>
+                                        <div class="flex items-center space-x-2">
+                                            <input type="text" value="${problem.equation1.text}" class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm" readonly>
+                                            <span class="text-gray-500">→</span>
+                                            <input type="text" value="${problem.equation2.text}" class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="text-sm font-medium mb-1">Output: ${result.output.split('\n')[0].split(': ')[1]} | Expected: ${problem.expectedVerdict}</div>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-4 mb-4 text-sm">
+                                        <div class="bg-gray-50 p-2 rounded text-center">
+                                            <div class="font-medium">${result.time}s</div>
+                                            <div class="text-xs text-gray-500">TIME</div>
+                                        </div>
+                                        <div class="bg-gray-50 p-2 rounded text-center">
+                                            <div class="font-medium">$${result.cost}</div>
+                                            <div class="text-xs text-gray-500">COST</div>
+                                        </div>
+                                        <div class="bg-gray-50 p-2 rounded text-center">
+                                            <div class="font-medium">${result.tokensIn}</div>
+                                            <div class="text-xs text-gray-500">IN</div>
+                                        </div>
+                                        <div class="bg-gray-50 p-2 rounded text-center">
+                                            <div class="font-medium">${result.tokensOut}</div>
+                                            <div class="text-xs text-gray-500">OUT</div>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <button class="text-primary text-sm font-medium show-history-response" data-id="${problem.id}">Show response ▼</button>
+                                        <button class="text-primary text-sm font-medium show-history-prompt" data-id="${problem.id}">Show prompt ▼</button>
+                                    </div>
+                                    <div class="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-md text-sm history-response-content hidden" id="history-response-${problem.id}">
+                                        ${result.output.split('\n').map(line => `<p>${line}</p>`).join('')}
+                                    </div>
+                                    <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm history-prompt-content hidden" id="history-prompt-${problem.id}">
+                                        ${result.prompt.split('\n').map(line => `<p>${line}</p>`).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+
+            historyList.insertBefore(historyItem, historyList.firstChild);
+
+            // Add event listeners for show/hide buttons in history
+            document.querySelectorAll('.show-history-response').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const content = document.getElementById(`history-response-${id}`);
+                    content.classList.toggle('hidden');
+                    this.textContent = content.classList.contains('hidden') ? 'Show response ▼' : 'Hide response ▲';
+                });
+            });
+
+            document.querySelectorAll('.show-history-prompt').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const content = document.getElementById(`history-prompt-${id}`);
+                    content.classList.toggle('hidden');
+                    this.textContent = content.classList.contains('hidden') ? 'Show prompt ▼' : 'Hide prompt ▲';
+                });
+            });
+        }
+
+        // Load cheatsheets from local storage
+        function loadCheatsheets() {
+            const savedCheatsheets = JSON.parse(localStorage.getItem('magma-tester-cheatsheets') || '[]');
+            if (savedCheatsheets.length > 0) {
+                cheatsheets = savedCheatsheets;
+                
+                // Update main cheatsheet select
+                const select = document.getElementById('cheatsheet-select');
+                select.innerHTML = '';
+                cheatsheets.forEach(cheatsheet => {
+                    const option = document.createElement('option');
+                    option.value = cheatsheet.id;
+                    option.textContent = cheatsheet.name;
+                    select.appendChild(option);
+                });
+                
+                // Update history cheatsheet filter
+                const historyCheatsheetFilter = document.getElementById('history-cheatsheet-filter');
+                if (historyCheatsheetFilter) {
+                    const currentFilterValue = historyCheatsheetFilter.value;
+                    historyCheatsheetFilter.innerHTML = '<option value="all">All Cheatsheets</option>';
+                    cheatsheets.forEach(cheatsheet => {
+                        const option = document.createElement('option');
+                        option.value = cheatsheet.id;
+                        option.textContent = cheatsheet.name;
+                        historyCheatsheetFilter.appendChild(option);
+                    });
+                    // Restore previous filter value if it still exists
+                    if (Array.from(historyCheatsheetFilter.options).some(option => option.value === currentFilterValue)) {
+                        historyCheatsheetFilter.value = currentFilterValue;
+                    }
+                }
+            }
+        }
+
+        // Save cheatsheets to local storage
+        function saveCheatsheets() {
+            localStorage.setItem('magma-tester-cheatsheets', JSON.stringify(cheatsheets));
+        }
+
+        // Save problem sets to local storage
+        function saveProblemSets() {
+            localStorage.setItem('magma-tester-problem-sets', JSON.stringify(problemSets));
+        }
+
+        // Load problem sets from local storage
+        function loadProblemSets() {
+            const savedProblemSets = JSON.parse(localStorage.getItem('magma-tester-problem-sets') || '[]');
+            
+            // Check if hard problem set already exists
+            const hardProblemSetExists = savedProblemSets.some(set => set.id === 'hard-problem-set');
+            
+            if (!hardProblemSetExists) {
+                // Load hard.jsonl and create default problem set
+                fetch('hard.jsonl')
+                    .then(response => response.text())
+                    .then(text => {
+                        const lines = text.trim().split('\n');
+                        const hardProblems = lines.map((line, index) => {
+                            try {
+                                const data = JSON.parse(line);
+                                return {
+                                    id: index + 1,
+                                    equation1: {
+                                        id: `hard_${String(data.index).padStart(4, '0')}`,
+                                        text: data.equation1
+                                    },
+                                    equation2: {
+                                        id: `hard_${String(data.index).padStart(4, '0')}`,
+                                        text: data.equation2
+                                    },
+                                    implies: data.answer,
+                                    expectedVerdict: data.answer ? 'TRUE' : 'FALSE'
+                                };
+                            } catch (error) {
+                                console.error('Error parsing line:', line, error);
+                                return null;
+                            }
+                        }).filter(problem => problem !== null);
+
+                        if (hardProblems.length > 0) {
+                            const hardProblemSet = {
+                                id: 'hard-problem-set',
+                                name: 'Hard Problems (200)',
+                                problems: hardProblems,
+                                createdAt: new Date().toISOString()
+                            };
+
+                            problemSets = [...savedProblemSets, hardProblemSet];
+                            saveProblemSets();
+                            updateProblemSetSelect();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading hard.jsonl:', error);
+                        // Fall back to saved problem sets
+                        problemSets = savedProblemSets;
+                        updateProblemSetSelect();
+                    });
+            } else {
+                problemSets = savedProblemSets;
+                updateProblemSetSelect();
+            }
+        }
+
+        // Update problem set select options
+        function updateProblemSetSelect() {
+            const select = document.getElementById('problem-set-select');
+            select.innerHTML = '<option value="">Select a problem set...</option>';
+            problemSets.forEach(problemSet => {
+                const option = document.createElement('option');
+                option.value = problemSet.id;
+                option.textContent = problemSet.name;
+                select.appendChild(option);
+            });
+        }
+
+        // Save selected problems as a problem set
+        function saveProblemSet() {
+            const selectedProblems = generatedProblems.filter((_, index) => {
+                const checkbox = document.querySelector(`.problem-checkbox[data-id="${index}"]`);
+                return checkbox && checkbox.checked;
+            });
+
+            if (selectedProblems.length < 2) {
+                alert('Please select at least 2 problems to save as a problem set.');
+                return;
+            }
+
+            const name = prompt('Enter a name for this problem set:');
+            if (!name) {
+                return;
+            }
+
+            const id = 'problem-set-' + Date.now();
+            const problemSet = {
+                id: id,
+                name: name,
+                problems: selectedProblems,
+                createdAt: new Date().toISOString()
+            };
+
+            problemSets.push(problemSet);
+            saveProblemSets();
+
+            // Update select options
+            const select = document.getElementById('problem-set-select');
+            const option = document.createElement('option');
+            option.value = id;
+            option.textContent = name;
+            select.appendChild(option);
+            select.value = id;
+
+        }
+
+        // Load a problem set
+        function loadProblemSet() {
+            const selectedProblemSetId = document.getElementById('problem-set-select').value;
+            if (!selectedProblemSetId) {
+                alert('Please select a problem set to load.');
+                return;
+            }
+
+            const problemSet = problemSets.find(ps => ps.id === selectedProblemSetId);
+            if (!problemSet) {
+                alert('Problem set not found.');
+                return;
+            }
+
+            // Clear current problems
+            generatedProblems = [];
+            const problemsList = document.getElementById('problems-list');
+            problemsList.innerHTML = '';
+
+            // Load problems from the set
+            problemSet.problems.forEach((problem, index) => {
+                generatedProblems.push(problem);
+
+                const problemItem = document.createElement('div');
+                problemItem.className = 'p-3 border-b border-gray-200 hover:bg-gray-50';
+                problemItem.innerHTML = `
+                    <div class="flex items-center">
+                        <input type="checkbox" class="problem-checkbox mr-3" data-id="${index}" checked>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium">Problem #${index + 1} (${problem.equation1.id} → ${problem.equation2.id})</div>
+                            <div class="text-xs text-gray-600">${problem.equation1.text} → ${problem.equation2.text}</div>
+                            <div class="text-xs text-gray-500 mt-1">Expected: ${problem.expectedVerdict} (${problem.implies ? 'Implies' : 'Does not imply'})</div>
+                        </div>
+                    </div>
+                `;
+                problemsList.appendChild(problemItem);
+            });
+
+            // Update prompt preview
+            updatePromptPreview();
+
+        }
+
+        // Delete a problem set
+        function deleteProblemSet() {
+            const selectedProblemSetId = document.getElementById('problem-set-select').value;
+            if (!selectedProblemSetId) {
+                alert('Please select a problem set to delete.');
+                return;
+            }
+
+            const problemSet = problemSets.find(ps => ps.id === selectedProblemSetId);
+            if (!problemSet) {
+                alert('Problem set not found.');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to delete the problem set "${problemSet.name}"?`)) {
+                return;
+            }
+
+            problemSets = problemSets.filter(ps => ps.id !== selectedProblemSetId);
+            saveProblemSets();
+
+            // Update select options
+            const select = document.getElementById('problem-set-select');
+            select.innerHTML = '<option value="">Select a problem set...</option>';
+            problemSets.forEach(ps => {
+                const option = document.createElement('option');
+                option.value = ps.id;
+                option.textContent = ps.name;
+                select.appendChild(option);
+            });
+
+            alert(`Problem set "${problemSet.name}" deleted.`);
+        }
+
+        // Load history on tab switch
+        function loadHistoryToUI() {
+            const history = loadHistory();
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+
+            if (history.length === 0) {
+                historyList.innerHTML = `
+                    <div class="p-4 text-center text-gray-500">
+                        No history yet. Run some problems to see results here.
+                    </div>
+                `;
+                return;
+            }
+
+            // Get filter values
+            const modelFilter = document.getElementById('history-model-filter').value;
+            const cheatsheetFilter = document.getElementById('history-cheatsheet-filter').value;
+
+            // Filter history
+            const filteredHistory = history.filter(historyItem => {
+                if (!historyItem.results || historyItem.results.length === 0) return false;
+                
+                const firstResult = historyItem.results[0];
+                
+                // Apply model filter
+                if (modelFilter !== 'all' && firstResult.model !== modelFilter) {
+                    return false;
+                }
+                
+                // Apply cheatsheet filter
+                if (cheatsheetFilter !== 'all' && firstResult.cheatsheet !== cheatsheetFilter) {
+                    return false;
+                }
+                
+                return true;
+            });
+
+            if (filteredHistory.length === 0) {
+                historyList.innerHTML = `
+                    <div class="p-4 text-center text-gray-500">
+                        No history matches the selected filters.
+                    </div>
+                `;
+                return;
+            }
+
+            filteredHistory.forEach(historyItem => {
+                if (!historyItem.results || historyItem.results.length === 0) return;
+
+                const firstResult = historyItem.results[0];
+                const accuracy = (historyItem.results.filter(r => r.isCorrect).length / historyItem.results.length * 100).toFixed(1);
+                const avgTime = (historyItem.results.reduce((sum, r) => sum + parseFloat(r.time), 0) / historyItem.results.length).toFixed(1);
+                const avgCost = (historyItem.results.reduce((sum, r) => sum + parseFloat(r.cost), 0) / historyItem.results.length).toFixed(6);
+                const timestamp = new Date(historyItem.timestamp).toLocaleString();
+
+                const historyUIItem = document.createElement('div');
+                historyUIItem.className = 'border border-gray-200 rounded-lg overflow-hidden mb-4';
+                historyUIItem.innerHTML = `
+                    <div class="bg-gray-50 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
+                        <div class="font-medium">${firstResult.model}</div>
+                        <div class="text-sm text-gray-500">${historyItem.results.length}/${historyItem.results.length} (100%) | ${timestamp}</div>
+                    </div>
+                    <div class="px-4 py-3">
+                        <div class="grid grid-cols-7 gap-4 mb-4 text-sm">
+                            <div>Model</div>
+                            <div>Template</div>
+                            <div>Cheatsheet</div>
+                            <div>Count</div>
+                            <div>Accuracy</div>
+                            <div>Avg Cost</div>
+                            <div>Avg Time</div>
+                            <div>${firstResult.model}</div>
+                            <div>official</div>
+                            <div>${firstResult.cheatsheet}</div>
+                            <div>${historyItem.results.length}</div>
+                            <div class="text-green-600 font-medium">${accuracy}%</div>
+                            <div>$${avgCost}</div>
+                            <div>${avgTime}s</div>
+                        </div>
+                        <div class="border-t border-gray-200 pt-4">
+                            ${historyItem.results.map(result => {
+                                const problem = result.problem;
+                                return `
+                                    <div class="mb-4 pb-4 border-b border-gray-100 last:border-b-0 last:mb-0 last:pb-0">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <div class="font-medium">${result.model}</div>
+                                            <div class="${result.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} px-2 py-1 rounded text-sm font-medium">
+                                                ${result.isCorrect ? 'CORRECT' : 'INCORRECT'}
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="text-sm font-medium mb-1">Problem #${problem.id}</div>
+                                            <div class="flex items-center space-x-2">
+                                                <input type="text" value="${problem.equation1.text}" class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm" readonly>
+                                                <span class="text-gray-500">→</span>
+                                                <input type="text" value="${problem.equation2.text}" class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="text-sm font-medium mb-1">Output: ${result.output.split('\n')[0].split(': ')[1] || 'UNKNOWN'} | Expected: ${problem.expectedVerdict}</div>
+                                        </div>
+                                        <div class="grid grid-cols-4 gap-4 mb-4 text-sm">
+                                            <div class="bg-gray-50 p-2 rounded text-center">
+                                                <div class="font-medium">${result.time}s</div>
+                                                <div class="text-xs text-gray-500">TIME</div>
+                                            </div>
+                                            <div class="bg-gray-50 p-2 rounded text-center">
+                                                <div class="font-medium">$${result.cost}</div>
+                                                <div class="text-xs text-gray-500">COST</div>
+                                            </div>
+                                            <div class="bg-gray-50 p-2 rounded text-center">
+                                                <div class="font-medium">${result.tokensIn}</div>
+                                                <div class="text-xs text-gray-500">IN</div>
+                                            </div>
+                                            <div class="bg-gray-50 p-2 rounded text-center">
+                                                <div class="font-medium">${result.tokensOut}</div>
+                                                <div class="text-xs text-gray-500">OUT</div>
+                                            </div>
+                                        </div>
+                                        <div class="space-y-2">
+                                            <button class="text-primary text-sm font-medium show-history-response" data-id="${problem.id}">Show response ▼</button>
+                                            <button class="text-primary text-sm font-medium show-history-prompt" data-id="${problem.id}">Show prompt ▼</button>
+                                        </div>
+                                        <div class="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-md text-sm history-response-content hidden" id="history-response-${problem.id}">
+                                            ${result.output.split('\n').map(line => `<p>${line}</p>`).join('')}
+                                        </div>
+                                        <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm history-prompt-content hidden" id="history-prompt-${problem.id}">
+                                            ${result.prompt.split('\n').map(line => `<p>${line}</p>`).join('')}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+
+                historyList.appendChild(historyUIItem);
+            });
+
+            // Add event listeners for show/hide buttons in history
+            document.querySelectorAll('.show-history-response').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const content = document.getElementById(`history-response-${id}`);
+                    content.classList.toggle('hidden');
+                    this.textContent = content.classList.contains('hidden') ? 'Show response ▼' : 'Hide response ▲';
+                });
+            });
+
+            document.querySelectorAll('.show-history-prompt').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const content = document.getElementById(`history-prompt-${id}`);
+                    content.classList.toggle('hidden');
+                    this.textContent = content.classList.contains('hidden') ? 'Show prompt ▼' : 'Hide prompt ▲';
+                });
+            });
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadData();
+            loadCheatsheets();
+            loadProblemSets();
+            
+            // Load API key from local storage
+            const savedApiKey = localStorage.getItem('magma-tester-api-key');
+            if (savedApiKey) {
+                document.getElementById('api-key').value = savedApiKey;
+            }
+            
+            // Save API key to local storage when changed
+            document.getElementById('api-key').addEventListener('input', function() {
+                localStorage.setItem('magma-tester-api-key', this.value);
+            });
+
+            // Tab switching
+            document.getElementById('tab-run').addEventListener('click', () => {
+                document.getElementById('run-content').classList.remove('hidden');
+                document.getElementById('history-content').classList.add('hidden');
+                document.getElementById('tab-run').classList.add('text-primary', 'border-primary');
+                document.getElementById('tab-run').classList.remove('text-gray-500');
+                document.getElementById('tab-history').classList.add('text-gray-500');
+                document.getElementById('tab-history').classList.remove('text-primary', 'border-primary');
+            });
+
+            document.getElementById('tab-history').addEventListener('click', () => {
+                document.getElementById('run-content').classList.add('hidden');
+                document.getElementById('history-content').classList.remove('hidden');
+                document.getElementById('tab-history').classList.add('text-primary', 'border-primary');
+                document.getElementById('tab-history').classList.remove('text-gray-500');
+                document.getElementById('tab-run').classList.add('text-gray-500');
+                document.getElementById('tab-run').classList.remove('text-primary', 'border-primary');
+                // Load history when switching to history tab
+                loadHistoryToUI();
+            });
+
+            // Add cheatsheet
+            document.getElementById('add-cheatsheet').addEventListener('click', () => {
+                document.getElementById('cheatsheet-editor').classList.remove('hidden');
+                document.getElementById('cheatsheet-name').value = '';
+                document.getElementById('cheatsheet-content').value = '';
+            });
+
+            // Edit cheatsheet
+            document.getElementById('edit-cheatsheet').addEventListener('click', () => {
+                const selectedCheatsheetId = document.getElementById('cheatsheet-select').value;
+                if (selectedCheatsheetId === 'none') {
+                    alert('Please select a cheatsheet to edit.');
+                    return;
+                }
+
+                const cheatsheet = cheatsheets.find(c => c.id === selectedCheatsheetId);
+                if (cheatsheet) {
+                    document.getElementById('cheatsheet-name').value = cheatsheet.name;
+                    document.getElementById('cheatsheet-content').value = cheatsheet.content;
+                    document.getElementById('cheatsheet-editor').classList.remove('hidden');
+                }
+            });
+
+            // Cancel cheatsheet editing
+            document.getElementById('cancel-cheatsheet').addEventListener('click', () => {
+                document.getElementById('cheatsheet-editor').classList.add('hidden');
+                document.getElementById('cheatsheet-name').value = '';
+                document.getElementById('cheatsheet-content').value = '';
+            });
+
+            // Save cheatsheet
+            document.getElementById('save-cheatsheet').addEventListener('click', () => {
+                const name = document.getElementById('cheatsheet-name').value.trim();
+                const content = document.getElementById('cheatsheet-content').value;
+                const selectedCheatsheetId = document.getElementById('cheatsheet-select').value;
+
+                if (!name) {
+                    alert('Please enter a cheatsheet name.');
+                    return;
+                }
+
+                // Check if editing existing cheatsheet
+                const existingIndex = cheatsheets.findIndex(c => c.id === selectedCheatsheetId);
+                if (existingIndex >= 0 && selectedCheatsheetId !== 'none') {
+                    // Update existing cheatsheet
+                    cheatsheets[existingIndex] = {
+                        ...cheatsheets[existingIndex],
+                        name: name,
+                        content: content
+                    };
+                } else {
+                    // Create new cheatsheet
+                    const id = 'cheatsheet-' + Date.now();
+                    cheatsheets.push({ id, name, content });
+                }
+
+                saveCheatsheets();
+                
+                // Update select options
+                const select = document.getElementById('cheatsheet-select');
+                select.innerHTML = '';
+                cheatsheets.forEach(cheatsheet => {
+                    const option = document.createElement('option');
+                    option.value = cheatsheet.id;
+                    option.textContent = cheatsheet.name;
+                    select.appendChild(option);
+                });
+                
+                // Update history cheatsheet filter options
+                const historyCheatsheetFilter = document.getElementById('history-cheatsheet-filter');
+                const currentFilterValue = historyCheatsheetFilter.value;
+                historyCheatsheetFilter.innerHTML = '<option value="all">All Cheatsheets</option>';
+                cheatsheets.forEach(cheatsheet => {
+                    const option = document.createElement('option');
+                    option.value = cheatsheet.id;
+                    option.textContent = cheatsheet.name;
+                    historyCheatsheetFilter.appendChild(option);
+                });
+                // Restore previous filter value if it still exists
+                if (Array.from(historyCheatsheetFilter.options).some(option => option.value === currentFilterValue)) {
+                    historyCheatsheetFilter.value = currentFilterValue;
+                }
+                
+                document.getElementById('cheatsheet-editor').classList.add('hidden');
+                document.getElementById('cheatsheet-name').value = '';
+                document.getElementById('cheatsheet-content').value = '';
+            });
+
+            // Generate problems
+            document.getElementById('generate-problems').addEventListener('click', () => {
+                const count = parseInt(document.getElementById('problem-count').value);
+                if (count < 1) {
+                    alert('Please enter a number between 1 and 100.');
+                    return;
+                }
+                generateProblems(count);
+                // Update prompt preview
+                setTimeout(updatePromptPreview, 100);
+            });
+
+            // Add custom problem
+            document.getElementById('add-custom-problem').addEventListener('click', addCustomProblem);
+
+            // Run button
+            document.getElementById('run-button').addEventListener('click', runProblems);
+
+            // Cancel button
+            document.getElementById('cancel-button').addEventListener('click', cancelRun);
+
+            // History filter button
+            document.getElementById('history-filter-button').addEventListener('click', loadHistoryToUI);
+
+            // Problem checkbox change
+            document.addEventListener('change', (e) => {
+                if (e.target.classList.contains('problem-checkbox')) {
+                    updatePromptPreview();
+                }
+            });
+
+            // Cheatsheet select change
+            document.getElementById('cheatsheet-select').addEventListener('change', updatePromptPreview);
+
+            // Select all problems
+            document.getElementById('select-all-problems').addEventListener('click', () => {
+                document.querySelectorAll('.problem-checkbox').forEach(checkbox => {
+                    checkbox.checked = true;
+                });
+                updatePromptPreview();
+            });
+
+            // Deselect all problems
+            document.getElementById('deselect-all-problems').addEventListener('click', () => {
+                document.querySelectorAll('.problem-checkbox').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                updatePromptPreview();
+            });
+
+            // Save problem set
+            document.getElementById('save-problem-set').addEventListener('click', saveProblemSet);
+
+            // Load problem set
+            document.getElementById('load-problem-set').addEventListener('click', loadProblemSet);
+
+            // Delete problem set
+            document.getElementById('delete-problem-set').addEventListener('click', deleteProblemSet);
+        });
+    </script>
+</body>
+</html>
