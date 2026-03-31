@@ -1,0 +1,517 @@
+
+--- Batch 1 Analysis ---
+Based on the meta-analysis of the provided dataset, it is clear that the model suffers from severe logical breakdowns when attempting to evaluate abstract algebraic structures (magmas) and deeply nested equations. 
+
+A fascinating anomaly in this dataset is the **Verdict Mismatch**: the model frequently argues `VERDICT: FALSE` and attempts to build a counterexample, but eventually outputs or is parsed as `TRUE` (claiming a proof exists). This happens because the model realizes its counterexample is failing mid-generation, panics, and pivots to assuming the statement must be true, or defaults to an unsupported `PROOF:` block.
+
+Here is the **Safety Warning List** of hallucinated patterns and logical pitfalls to integrate into your final System Prompt.
+
+---
+
+### 🚨 SAFETY WARNING LIST: Common Hallucination Patterns 🚨
+
+#### 1. Illegal Substitutions & Sub-expression Generalization
+**The Pitfall:** The model illegitimately treats the output of a constrained sub-expression as if it ranges over the entire magma domain.
+*   **Data Evidence (hard_0183):** The model argues *"Equation 1 provides that `x * q = x` where `q` ranges over elements of the form `y * (x * z)`... Equation 2 requires `p * u = x` where `p` ranges over..."* 
+*   **Why it fails:** The model falsely assumes that because `q` is a complex expression, it can represent *any* element in the magma. It acts as if `x * q = x` for *all* `q`, which illegally substitutes a constrained image for a universally quantified variable.
+*   **Constraint to Add:** **WARNING: Do not treat the image of a sub-expression as a free variable.** If an axiom states `x * (y * (x * z)) = x`, you cannot assume `x * q = x` for all `q`. You may only substitute exactly the exact structural pattern provided by the axioms.
+
+#### 2. Circular Reasoning & "Proof by Hand-Waving"
+**The Pitfall:** When the model fails to construct a valid mathematical counterexample (Cayley table), it assumes the conclusion is true anyway, or asserts that a counterexample "must" exist without proving it.
+*   **Data Evidence (hard_0070):** The model tries to build a counterexample, fails the arithmetic (`"1*(0*0)=1*2=1?"`), and immediately hallucinates: *"Wait the core existence holds: there exists no logical barrier to constructing such a magma... so a counterexample exists."* It then abruptly appends `"PROOF:"`.
+*   **Why it fails:** This is pure circular reasoning. The model uses its inability to find a contradiction as "proof" that a model exists, and then somehow flips to outputting a `TRUE` proof state.
+*   **Constraint to Add:** **WARNING: Never assert "existence holds" without a fully verified Cayley table.** If your step-by-step arithmetic for a counterexample yields a contradiction, your counterexample is invalid. Do not hand-wave logical barriers. If you cannot construct the counterexample, you must switch to attempting a formal proof, not default to asserting existence.
+
+#### 3. Symbolic Overload (The Complexity Threshold)
+**The Pitfall:** The model’s logic breaks down when evaluating equational depth > 2. It loses track of variable assignments and invents arithmetic rules on the fly.
+*   **Data Evidence (hard_0070):** The model tries to define a custom rule: *"(y*x)*y = x-1 mod 3 for all x,y"*. 
+*   **Why it fails:** Algebraically, the expression `(y*x)*y` cannot be independent of `y` unless the magma is highly degenerate, but the model forces it to equal `x-1 mod 3`. When evaluating the depth-3 nested equation `(((1*0)*1)*0)`, the model totally loses track of its own rules and hallucinates the output.
+*   **Constraint to Add:** **WARNING: Beware of Symbolic Overload.** When evaluating equations with nested depth of 3 or more (e.g., `x * (((x * y) * x) * y)`), you MUST evaluate from the innermost parentheses outward, explicitly writing the substitution for every single step. Do not assign arbitrary algebraic properties (like bijections or modulo arithmetic) to nested expressions without proving they satisfy the base axioms for *all* elements.
+
+#### 4. Notation Errors & Scope Blindness
+**The Pitfall:** The model misinterprets the scope of parentheses or assumes implicit associativity/commutativity because the variables "look" similar.
+*   **Data Evidence (hard_0027):** The model correctly notes differing parenthesization (`x * (y * (x * z))` vs `((x * y) * (z * w)) * u`) but fails to recognize whether one can be manipulated into the other using given axioms. In other instances (empty responses like `hard_0174`), the model likely hallucinates a direct substitution by ignoring parentheses.
+*   **Why it fails:** The LLM tokenizes variables linearly and frequently suffers from "parenthesis blindness," treating `(x*y)*z` as equivalent to `x*(y*z)` if it helps finish a proof.
+*   **Constraint to Add:** **WARNING: Strict Syntactic Matching.** Magmas are strictly non-associative and non-commutative unless explicitly defined. You cannot rearrange parentheses. `(A * B) * C` is strictly different from `A * (B * C)`. Any substitution must be an exact syntactic match to the axiom's parentheses structure.
+
+---
+
+### 📝 Recommended System Prompt Additions
+
+To prevent these false positive "proofs", inject these explicit directives into your System Prompt:
+
+> **CRITICAL REASONING CONSTRAINTS FOR MAGMA PROOFS:**
+> 1. **No Implicit Associativity/Commutativity:** Match parentheses perfectly. `x * y` is NOT `y * x`. `(x * y) * z` is NOT `x * (y * z)`.
+> 2. **Step-by-Step Parenthesis Evaluation:** If an expression has a depth > 2 (e.g., `(((x*y)*z)*w)`), evaluate one operation at a time. Never skip directly to the final evaluation.
+> 3. **No Free-Variable Hallucination:** If an axiom applies to `y * (x * z)`, you cannot apply it to an arbitrary variable `w`. It ONLY applies to elements specifically constructed as `y * (x * z)`.
+> 4. **No Hand-Waved Counterexamples:** If you attempt to construct a Cayley table and it fails your arithmetic check, your counterexample is invalid. **DO NOT** write "there is no logical barrier" or "existence holds." You must either fix the table or abandon the counterexample.
+> 5. **Maintain Logical Consistency:** If you write `VERDICT: FALSE`, your final parsed answer must be FALSE. Do not output a `PROOF:` block if you are arguing the implication is false.
+
+--- Batch 2 Analysis ---
+Based on a detailed meta-analysis of the provided hallucinated proofs, here is a breakdown of the logical pitfalls, "fake" math steps, and failures in reasoning. 
+
+### Meta-Analysis of Hallucinated Proofs
+
+**1. Variable Binding Leaks (Symbolic Overload)**
+* **Case Study:** `hard_0061`
+* **The Pitfall:** When evaluating deeply nested equations, the model loses track of variable assignments and accidentally swaps them. 
+* **Evidence:** The model assigns $x=0, y=2$. It needs to evaluate the expression $y * (z * (0 * y))$. It correctly computes the innermost part, but for the outermost $y$, it writes $T = 0 * (z * 1)$ instead of $T = 2 * (z * 1)$. It illegally substituted the value of $x$ ($0$) into the position of $y$.
+* **Complexity Threshold:** The model's logical consistency seems to break down at a nesting depth of 3 or more operations (e.g., $A * (B * (C * D))$).
+
+**2. Cognitive Dissonance / Contradictory Conclusions**
+* **Case Study:** `hard_0067`
+* **The Pitfall:** The model assumes the conclusion to be true *before* doing the math. When the step-by-step arithmetic explicitly contradicts this assumption, the model ignores its own calculation to force the desired conclusion.
+* **Evidence:** The model attempts to verify Equation 1 and literally writes out: *"actually $2 * 1 = 0 \neq 2$."* But in the very next sentence, it concludes: *"After careful verification, this satisfies Equation 1..."* It calculated a failure but hallucinated a success.
+
+**3. Fake Generalization / Skipping Exhaustive Checks**
+* **Case Study:** `hard_0060`
+* **The Pitfall:** The model makes sweeping claims about the behavior of a sub-expression without actually checking all combinations, falsely assuming it exhibits a convenient property.
+* **Evidence:** To prove Equation 1 holds, the model claims that the nested term `(((y * z) * x) * z)` will *always* evaluate to elements `a` or `b` (which act as left identities). However, a simple edge-case test ($x=a, y=c, z=c$) results in `c`, which does *not* act as a left identity. The model hallucinated the range of the sub-expression to avoid exhaustive evaluation.
+
+**4. Proof by Bluffing (Missing Constructive Proofs)**
+* **Case Study:** `hard_0171`
+* **The Pitfall:** The model argues that a counterexample exists "in theory" without providing the concrete mathematical objects required to prove it.
+* **Evidence:** The model writes: *"While a specific finite table is complex to derive manually without computational search, the logical structure shows Eq1 allows non-constant columns... Thus, Eq1 does not imply Eq2."* It uses meta-reasoning to evade the strict requirement of constructing a valid Cayley table. 
+
+---
+
+### 🚨 Safety Warning List (To be included in the System Prompt)
+
+To prevent these specific hallucinations, integrate the following negative constraints into the final System Prompt:
+
+1. **NO "BLUFFING" COUNTEREXAMPLES:** You are strictly forbidden from claiming a counterexample exists "in theory." If you cannot output a complete, explicitly defined, and verifiable Cayley table (multiplication table), you must not claim that the implication is false. 
+2. **DO NOT IGNORE YOUR OWN ARITHMETIC:** If you are verifying a table and your step-by-step calculation yields LHS $\neq$ RHS (e.g., `0 != 2`), you must immediately declare that the table FAILS the equation. Do not write "Therefore it is satisfied" if the numbers do not match. Let the calculations drive your conclusion, not the other way around.
+3. **STRICT VARIABLE TRACKING AT DEPTH:** When evaluating nested equations (Depth $\geq$ 3), explicitly write down your variable bindings (e.g., `[x=0, y=2, z=1]`). When plugging values into the equation, verify the exact binding for *every single variable instance*. Do not accidentally reuse $x$'s value for $y$. 
+4. **NO HASTY GENERALIZATIONS:** Never claim a nested sub-expression "always evaluates to X" or "only produces elements Y and Z" unless you have explicitly proven it or checked every possible combination in the finite magma. 
+5. **EXHAUSTIVE VERIFICATION REQUIRED:** Providing a single example where an equation holds does not mean it holds for the entire magma. An equation is only satisfied if it holds for ALL possible $x, y, z$ inputs. Test edge cases heavily before concluding an equation is satisfied.
+
+--- Batch 3 Analysis ---
+Based on the provided data and a deep dive into the logic of the "Equational Theories" challenges, here is a meta-analysis of the hallucination patterns. 
+
+In these cases, the model often correctly identified that an implication was **FALSE** in its reasoning text but failed to provide a valid counterexample or, conversely, provided a "hallucinated proof" that ignored the constraints of the magma.
+
+### 1. Illegal Substitutions (The "Stealth Commutativity" Trap)
+Models often "cheat" by applying properties that are common in arithmetic but not present in a raw magma.
+*   **The Error:** Assuming $(a * b) * (c * d) = (a * c) * (b * d)$ (Mediality) or $a * b = b * a$ (Commutativity) to collapse complex nested structures into simpler ones.
+*   **Example Case:** In `hard_0087`, Equation 1 is $x = x * ((y * z) * (w * u))$. A hallucinated proof would typically treat the block $((y * z) * (w * u))$ as a "unit identity" $e$ and then assume $e$ can be moved or decomposed, even though the equation only defines it as a *right* identity in a specific context.
+
+### 2. Circular Reasoning (The "Identity Assumption")
+This is the most common cause of false "TRUE" verdicts.
+*   **The Error:** The model assumes that because $x = x * \text{something}$, that "something" must be a universal identity element ($e$). It then uses $a * e = a$ and $e * a = a$ to simplify Equation 2.
+*   **Logical Pitfall:** In equational logic, an element might act as a right identity only when it has a specific internal structure (e.g., it must be a product of four variables). The model fails to distinguish between "this specific term is an identity" and "the operation has a global identity."
+
+### 3. Symbolic Overload & Complexity Thresholds
+Logic breaks down when the nesting depth exceeds 3 or 4 levels.
+*   **The Breakpoint:** In `hard_0108` ($x = (y * (y * z)) * (w * x)$), the model must track five variables ($x, y, z, w, u$). 
+*   **The Hallucination:** When the model encounters $y * (z * (w * (u * x)))$, it often "loses" one of the middle variables (like $w$ or $u$) during a substitution step, effectively turning a 5-variable problem into a 4-variable problem to match Equation 1. 
+
+### 4. Notation & Scope Errors (The Parenthesis "Slide")
+The model misinterprets the grouping of operations to force a match.
+*   **The Error:** Re-associating $(A * B) * C$ as $A * (B * C)$ without the Associative Law.
+*   **Specific Pattern:** In `hard_0156`, the model attempts to verify $(y * x) * (y * x) = x$. In its reasoning, it creates a custom rule where $y * x = x + 1$ and then claims $(x+1) * (x+1) = x$. This is a **"Phantom Rule"**—the model hallucinates a subtraction property ($+1$ followed by a $*$ results in $-1$) that was never defined, just to make the algebra "work out."
+
+---
+
+### Safety Warning List: Common Hallucination Patterns
+
+To improve the accuracy of future proofs, the following constraints should be treated as **Negative Constraints** in the System Prompt:
+
+1.  **[Identity Fallacy]:** Never assume an element is a global identity ($e$) just because it satisfies $x * T = x$ for a specific term $T$. $T$ must be treated as a fixed structure, not a movable constant.
+2.  **[Association Forbidden]:** Unless the theory explicitly proves $(a*b)*c = a*(b*c)$, treating the placement of parentheses as fluid is a logical failure.
+3.  **[Variable Shadowing]:** In complex equations, ensure every variable in the target equation (e.g., $u, w$) is explicitly accounted for. Hallucinations often involve "vanishing variables" that are ignored to make Eq1 look like Eq2.
+4.  **[Arithmetic Bias]:** Do not use properties of Addition, Multiplication, or Integers. Magma operations ($*$) have no inherent relationship to $+$ or $-$. (e.g., $x * x$ is NOT "x squared" and cannot be simplified to $x$ unless $x*x=x$ is given).
+5.  **[The Step-Gap Check]:** Every line of a proof must cite exactly one substitution from the given equations. If a step looks like "Simplifying the expression," it is likely a hallucination. 
+6.  **[Counterexample Integrity]:** If providing a magma table or custom rule, **manually verify the very first step.** (As seen in `hard_0156`, models often define a rule and then immediately violate it in the next sentence of the counterexample).
+
+--- Batch 4 Analysis ---
+Based on the analysis of the provided cases where the model incorrectly claimed a proof existed (False Positives), here is a meta-analysis of the logical pitfalls and a resulting **Safety Warning List**.
+
+### 1. Illegal Substitutions (The "Stealth Symmetry" Trap)
+The most common "cheat" identified is the **Implicit Assumption of Commutativity or Associativity.**
+*   **The Pattern:** In `hard_0086`, the model analyzed $x * y = (y * x) * z$. It correctly identified that $(y * x) * z$ must be independent of $z$. However, it often subconsciously assumes that if $x * y$ is related to $y * x$, then the operation is symmetric.
+*   **The Hallucination:** Models frequently substitute $(a * b)$ for $(b * a)$ to "bridge" the gap between Eq1 and Eq2 without Eq1 explicitly allowing for the swapping of operands.
+*   **Specific Error:** Treating the equality as a "set of elements" rather than an ordered operation.
+
+### 2. Circular Reasoning (The "Independence Assumption")
+*   **The Pattern:** In `hard_0034` and `hard_0086`, the models look at Eq2: $x * y = z * ((w * y) * y)$. Because $z$ and $w$ appear on the RHS but not the LHS, the model concludes that the operation $*$ *must* be a constant map or have a specific "absorbing" element.
+*   **The Hallucination:** The model assumes the conclusion (Eq2) is possible by forcing the theory into a trivial case (e.g., $x * y = c$). It then "proves" Eq1 implies Eq2 by saying "In the case where all outputs are constant, Eq1 holds and Eq2 holds; therefore, Eq1 implies Eq2." 
+*   **Logical Fallacy:** Confusing "There exists a model where both are true" with "All models of Eq1 satisfy Eq2."
+
+### 3. Symbolic Overload (The "Depth-3" Logic Collapse)
+*   **The Complexity Threshold:** Logic consistently breaks down when the nesting depth exceeds 3 or when there are more than 4 distinct variables. 
+*   **The Pattern:** In `hard_0197` ($x = (((y * x) * y) * z) * x$), the model must track $x$ through four layers of nesting. 
+*   **The Hallucination:** Models suffer from **"Variable Dropping."** They tend to simplify complex terms like $(((y * x) * y) * z)$ by effectively "deleting" the variables that don't appear in the target equation (Eq2), claiming they "cancel out" or "evaluate to an identity" without a step-by-step derivation of that identity.
+
+### 4. Notation Errors & Scope Misinterpretation
+*   **The Pattern:** Misinterpreting the "strength" of an equation. 
+*   **The Hallucination:** In `hard_0119`, the model creates a "Correct-Reasoning-Wrong-Verdict" loop. The reasoning correctly identifies that Eq1 does not enforce the same constraints as Eq2, but it still outputs `Answer: TRUE`. This suggests a **Label Bias** where the model's "Internal Critic" finds a counterexample, but its "Generator" defaults to `TRUE` because the equations look structurally similar (both involve nested products returning $x$ or $y$).
+
+---
+
+### ⚠️ Safety Warning List for Equational Proofs
+
+To avoid hallucinated proofs, the following constraints must be strictly enforced in the system prompt:
+
+1.  **Anti-Commutativity Constraint:** Never swap $(a * b)$ to $(b * a)$ unless Eq1 explicitly contains the term $x * y = y * x$ or you have derived it through a documented sequence of substitutions.
+2.  **The "New Variable" Prohibition:** If Eq1 has variables $\{x, y, z\}$ and Eq2 introduces a new variable $\{w\}$, you cannot assume the term containing $\{w\}$ disappears unless you can prove that $a * w = a$ (Identity) or $a * w = c$ (Constant) using only Eq1.
+3.  **Substitution Audit:** Every substitution must be explicitly stated as `Sub [variable] = [term] in Eq1`. If a step says "It follows that..." without a substitution, it is likely a hallucination.
+4.  **Term-Tree Depth Check:** If an equation has a nesting depth $> 3$ (e.g., `a*(b*(c*d))`), do not attempt to simplify the entire term in one step. You must solve for the innermost or outermost term first.
+5.  **The Trivial Model Filter:** Prohibiting the "Constant Map" justification. Proving that $1=1$ in a theory where $x*y=c$ is not a proof of implication for all magmas.
+6.  **LHS/RHS Variable Match:** If the LHS of Eq2 is $x * y$ and the RHS involves $z$, the proof **must** demonstrate that the RHS is invariant under $z$. If the derivation does not explicitly use $z$-independence, the proof is fake.
+7.  **Structure-Similarity Bias Warning:** Just because two equations both "reduce" to $x$ (e.g., $x = (\dots) * x$) does not mean they are equivalent. Do not equate two theories simply because they both exhibit "identity-like" behavior.
+
+--- Batch 5 Analysis ---
+### SAFETY WARNING LIST: Hallucination Patterns in Equational Proofs
+
+**1. Illegal Substitutions (Commutativity & Associativity Hallucinations)**
+*   **Pattern:** Falsely reversing operand order or shifting parenthetical scope to force a structural match.
+*   **Constraint Rule:** NEVER substitute `x * y` for `y * x` or shift `x * (y * z)` to `(x * y) * z` unless explicitly defined by the axiom set. (e.g., Falsely aligning `y * (z * (x * y))` with `((y * x) * z) * w`). 
+
+**2. Circular Reasoning (The Global Identity Fallacy)**
+*   **Pattern:** Conflating a *local* right-identity with a *global* property, and circularly assuming arbitrary variables will resolve to it.
+*   **Constraint Rule:** If an axiom yields `x * E = x`, DO NOT assume `E` is a universal right-identity. Furthermore, NEVER assume a universally quantified, unconstrained arbitrary variable (e.g., a free `w` acting as a rightmost factor) will map into the restricted domain of a local identity without a step-by-step structural proof.
+
+**3. Symbolic Overload (Depth-4 Attentional Collapse)**
+*   **Pattern:** At a nesting depth of 4 or greater (Complexity Threshold), the model loses token-position tracking and aggressively pattern-matches incompatible sub-trees.
+*   **Constraint Rule:** At depth \u2265 4 (e.g., `x = x * (y * (z * (x * y)))`), strictly map abstract syntax trees. Do not visually match variables. The presence of overlapping variables (like nested `z` and `w`) does not imply equivalence if the outer shell operations differ.
+
+**4. Notation Errors (Right-Unit/Terminal Variable Blindness)**
+*   **Pattern:** Ignoring the terminal scope of a new arbitrary variable at the end of an equation. 
+*   **Constraint Rule:** When equating two structures, if the target equation ends in an arbitrary, unconstrained right-multiplier (e.g., `... * w` or `... * u`), it CANNOT be derived from an equation that terminates in a structurally bound nested term, as the free variable can always escape the restricted evaluation path in a finite magma.
+
+***
+
+### META-ANALYSIS TRACE
+
+**Phase 1: Context Establishment**
+Initial logic and parameters are validated across the dataset. The problem cases (`hard_0041`, `hard_0144`, `hard_0165`, `hard_0113`, `hard_0064`) have been ingested. Standard processing applied to structural variable bindings, equational logic trees, and provided magma counterexamples (e.g., Mace4 partial assignments and 3-element finite models). 
+
+**Phase 2: Intermediate Processing**
+Standard processing applied.
+
+**Phase 3: Terminal Abstraction**
+Extrapolating the terminal logic paths directly into the failure constraints. Synthesizing the failure manifolds directly yields the topological vulnerabilities in non-associative, non-commutative magmas, mapping the divergence between local identity formations and unconstrained universal quantifiers.
+
+--- Batch 6 Analysis ---
+Based on the meta-analysis of the provided "hard" cases where the model incorrectly identified an implication (claiming TRUE or providing a flawed FALSE derivation), we have identified several recurring logical pitfalls.
+
+The following **Safety Warning List** details the common hallucination patterns found in equational reasoning and magma counterexample construction.
+
+---
+
+### **Safety Warning List: Hallucination Patterns in Equational Logic**
+
+#### **1. The "Phantom Property" Generalization (Illegal Substitution)**
+*   **The Hallucination:** The model defines a finite multiplication table and then claims a property holds for all elements (e.g., "For every $y \in M, y * y = 1$") when it only holds for a subset (e.g., only for $y=0$).
+*   **The Cheat:** It then uses this "phantom property" to simplify the premise (`eq1`) into a triviality, effectively ignoring the actual constraints of the equation.
+*   **Constraint:** **Always verify table-wide claims.** If a model claims "$\forall x, x*x=c$", check every entry on the diagonal of the multiplication table.
+
+#### **2. Self-Contradictory Reachability Claims (Circular Reasoning)**
+*   **The Hallucination:** When constructing a counterexample, the model claims an element $c$ is "unreachable" or "never produced as a result," then uses this claim to justify why the premise (`eq1`) holds.
+*   **The Cheat:** Often, the model’s own defined rules (e.g., "If $q \in \{a, b\}$, then $p*q = p$") allow $c$ to be produced (e.g., if $p=c$ and $q=a$, then $c*a=c$). The model assumes the conclusion (that the premise is satisfied) by ignoring these feedback loops.
+*   **Constraint:** **Trace output values.** For any rule-based magma, check if the "forbidden" element can appear as a result of an operation on itself or others.
+
+#### **3. "Pseudo-Modular" Complexity (Symbolic Overload)**
+*   **The Hallucination:** The model defines a magma using modular arithmetic (e.g., $a * b = (b-1) \pmod 4$) with special "exception" rules for certain elements.
+*   **The Cheat:** The complexity of the modular substitution masks the fact that the premise (`eq1`) is violated. Models often lose track of the $+1/-1$ shifts when the variable $x$ appears on both the far left and far right of a nested expression.
+*   **Constraint:** **The "Nesting Limit" Rule.** If a proof involves more than three levels of nesting (e.g., $x*(y*(z*(w*x)))$), the model is likely to lose a term or miscalculate a shift. Force manual expansion of each nested layer.
+
+#### **4. Identity Element "Creep" (Notation Errors)**
+*   **The Hallucination:** The model identifies an element as a "left identity" ($e * x = x$) and subsequently treats it as a "two-sided identity" ($x * e = x$) or a "constant absorber" without proof.
+*   **The Cheat:** In `hard_0003`, the model correctly identified 2 as a left identity but then failed to recognize that the right-hand side of `eq2` required specific behavior for $x*(\dots)$, which the left identity property does not cover.
+*   **Constraint:** **Strict Directionality.** If an element is proven to be a left identity, explicitly forbid its use as a right identity unless $x * e = x$ is independently verified.
+
+#### **5. Terms "Vanishing" in Deep Nesting**
+*   **The Hallucination:** When comparing `eq1` and `eq2`, the model claims "No sequence of substitutions can derive the structure," relying on the visual complexity of the terms.
+*   **The Cheat:** It treats the terms as "opaque blocks." It may claim a term is "deeply nested left-associative" when it is actually a mix, or vice versa, to justify why they can't be equal.
+*   **Constraint:** **Structure Mapping.** Require the model to count the occurrences of each variable and the depth of each variable. If `eq1` has $x$ at depth 1 and `eq2` has $x$ at depth 4, the model must explain the "Depth Jump" using specific substitution steps.
+
+#### **6. The "Free Magma" Hand-Wave**
+*   **The Hallucination:** The model claims that in a "free magma," two terms are not equivalent because "no substitution exists."
+*   **The Cheat:** This is often a "circular proof by lack of imagination." The model fails to find a proof and concludes, therefore, no proof is possible.
+*   **Constraint:** **Avoid "Negative Proofs" by default.** A claim that "no sequence of substitutions exists" is a high-level assertion that requires a formal invariant (like word length or variable parity) to be valid.
+
+### **Summary of Negative Constraints for Prompts:**
+1. **NO** assuming a property holds for all $x, y$ in a table without a cell-by-cell check.
+2. **NO** ignoring the result of an operation when the result is one of the inputs (Self-loop check).
+3. **NO** skipping parentheses in modular arithmetic definitions.
+4. **NO** treating left-identities as right-identities.
+5. **REQUIRED** expansion of all terms with nesting depth $> 2$.
+
+--- Batch 7 Analysis ---
+Based on the analysis of the provided cases where the model incorrectly claimed an implication existed (Answer: TRUE) while providing conflicting or flawed reasoning (Verdict: FALSE), we have identified several recurring "Fake Math" patterns.
+
+The following **Safety Warning List** outlines the logical pitfalls and hallucination triggers to be used as negative constraints in your final system prompt.
+
+### 1. The "Label-Reasoning Mismatch" (Structural Dissociation)
+*   **The Hallucination:** The model produces valid-sounding reasoning or a counterexample proving the implication is **FALSE**, but then outputs **VERDICT: TRUE** in the final answer field.
+*   **Negative Constraint:** Do not allow the final classification to deviate from the step-by-step derivation. If a counterexample is found, the answer must be FALSE.
+*   **Detection Tip:** Check if the reasoning text contains phrases like "does not hold" or "violates" while the final tag is "TRUE."
+
+### 2. "Table Fabrication" (Fake Counterexample Verification)
+*   **The Hallucination (e.g., hard_0112):** The model constructs a finite magma (e.g., a 2x2 table) but then lies about the results of the operations to force the equation to appear satisfied. 
+*   **Illegal Step:** Stating "Any input `u*1=1`" when the previously defined table clearly shows `1*1=0`.
+*   **Negative Constraint:** Every step of a counterexample verification must be calculated strictly against the provided multiplication table. No "hand-waving" generalities about the table are allowed.
+
+### 3. "The Symmetry Trap" (Illegal Commutativity/Associativity)
+*   **The Hallucination (e.g., hard_0059):** Assuming that a property governing "left-multiplication" automatically grants the same property to "right-multiplication."
+*   **Illegal Step:** If $x = (C) * x$ (where $C$ is a constant term), the model may hallucinate that $x = x * (C)$ must also be true.
+*   **Negative Constraint:** Do not assume commutativity ($a*b = b*a$) or associativity unless explicitly given or derived. Treat the order of operations and parenthesization as rigid.
+
+### 4. "Variable Over-Simplification" (Substitution Errors)
+*   **The Hallucination (e.g., hard_0061):** Claiming that because Equation 1 and Equation 2 use the same variables $\{x, y, z\}$, they must be related, ignoring the tree structure of the terms.
+*   **Illegal Step:** Treating a complex term like $y*(z*(x*y))$ as a "blanket" variable that can be substituted for any arbitrary term in the second equation.
+*   **Negative Constraint:** Substitution must be unidirectional (from the General Equation to a Specific Instance). You cannot substitute a complex term in the *target* equation to simplify it back to the *source* equation.
+
+### 5. "Blind Affirmation" (The Empty Proof)
+*   **The Hallucination (e.g., hard_0131):** Providing a "TRUE" verdict with an empty reasoning block or a "PROOF:" header followed by no content.
+*   **Negative Constraint:** An implication cannot be marked TRUE without a chain of explicit substitutions. If the chain of logic exceeds the "Complexity Threshold" (usually 4+ nested parentheses), the model must verify each intermediate term.
+
+### 6. "Manual Override" Logic
+*   **The Hallucination (e.g., hard_0061):** Defining a magma where a rule applies "except for one specific case" to force Equation 1 to hold while Equation 2 fails.
+*   **Illegal Step:** "All other undefined products return their first argument." This often creates hidden contradictions that the model fails to check against the original identity.
+*   **Negative Constraint:** Magma definitions must be holistic. If a "default" rule (like $a*b = a$) is used, it must be tested against both equations for all possible variable combinations.
+
+---
+
+### Summary Checklist for System Prompt Constraints:
+- **NO** assuming $x*y = y*x$.
+- **NO** stating a proof is "irreducible" while marking the answer as TRUE.
+- **NO** "Table Lying": Calculations must match the defined operation table exactly.
+- **REQUIRED:** If Equation 1 is $x = f(x, y, z)$, the model must explicitly show the sequence of $y := \dots$ and $z := \dots$ used to reach Equation 2.
+- **Complexity Warning:** If an equation has $>3$ levels of nesting (e.g., `(a*(b*(c*d)))`), the model is at high risk of "Symbolic Overload" and must re-read the variable positions after every substitution.
+
+--- Batch 8 Analysis ---
+Based on the analysis of the provided cases where the model hallucinated counterexamples to valid implications (False Negatives), here is a **Safety Warning List** of logical pitfalls and "fake" math steps to avoid.
+
+### 1. The Cayley Table Bluff (Fabricated Finite Magmas)
+*   **The Hallucination:** The model provides a small binary operation table (e.g., $3 \times 3$ or $4 \times 4$) and claims it satisfies Equation 1 but violates Equation 2.
+*   **The Cheat:** In nearly all hallucinated cases, the table **fails to satisfy Equation 1** upon manual inspection. The model often defines a few rows to satisfy the condition but ignores the "edges" where the universal quantifier ($\forall x, y, z$) breaks the identity.
+*   **Negative Constraint:** Do not trust a finite counterexample table without verifying the equation for every single permutation of elements, especially the "all same" ($x=x=x$) and "all distinct" cases.
+
+### 2. The "Variable Vanishing" Fallacy
+*   **The Hallucination:** Claiming that a complex term like $((y * x) * y)$ can be simplified to a single-variable function $\rho(x)$, independent of $y$.
+*   **The Cheat:** The model treats $y$ as if it "cancels out" or is "absorbed" without an explicit axiom allowing for such reduction. (e.g., Case `hard_0122` assumes $(y * x) * y = \rho^{-1}(x)$).
+*   **Negative Constraint:** Never assume a term is independent of one of its variables unless the theory explicitly contains an absorption or cancellation law.
+
+### 3. Parity Partitioning & Selective Rule Application
+*   **The Hallucination:** Constructing counterexamples on infinite sets (like $\mathbb{N}$ or $\mathbb{Z}$) by partitioning them into subsets (e.g., even/odd) and defining different rules for each.
+*   **The Cheat:** The model defines a rule for "Odd $*$ Any" and a rule for "Even $*$ Any," but fails to account for the fact that the *result* of the first operation might change the parity for the next nested operation, breaking the original Equation 1 requirement.
+*   **Negative Constraint:** Reject proofs that rely on "if $x$ is even, then..." logic unless the magma operation is proven to be closed and consistent across all nested parity transitions.
+
+### 4. The "Constant Term" Assumption
+*   **The Hallucination:** Assuming that a repeated-variable term like $(z * z)$ must result in a constant element $e$ (an identity or a zero element).
+*   **The Cheat:** The model asserts "Equation 1 implies $z * z$ is a constant $e$." In an arbitrary equational theory, $z * z$ can be a permutation, a projection, or a completely chaotic mapping.
+*   **Negative Constraint:** Do not assume $(x * x) = (y * y)$ or $(x * x) = e$ unless the theory provides a path to isolate the $x$ variable and prove its invariance.
+
+### 5. Functional Interpretation of Quantifiers
+*   **The Hallucination:** Distinguishing between "constructible elements" and "arbitrary elements."
+*   **The Cheat:** In Case `hard_0093`, the model claimed Eq1 only applies to elements "expressible as" a certain form. 
+*   **Negative Constraint:** Remember that equational logic is **universal**. If an equation holds, it holds for all elements in the domain, regardless of how they were produced (via previous operations or as raw variables). There is no such thing as an "unconstrained" element in a satisfied equational theory.
+
+### 6. Symbolic Overload (Complexity Threshold)
+*   **The Hallucination:** As seen in `hard_0115`, once an equation has more than 4 variables ($x, y, z, w, u$) or more than 3 levels of nesting, the model begins to treat the "inner" terms as a "black box" left-identity.
+*   **The Cheat:** The model claims "the term $(z*(w*u))$ is not guaranteed to be a valid triple product," failing to realize that if Equation 1 holds for *all* $w$, it must hold for *any* sub-expression substituted into $w$.
+*   **Negative Constraint:** Watch for the "Black Box" trap. If a reasoning step says "The term [Complex Expression] does not necessarily satisfy [Condition]," verify if that term can be substituted into a universal variable of a known axiom.
+
+### 7. Symmetry Hallucination (Commutativity Bias)
+*   **The Hallucination:** Reversing the order of operations in nested terms to make a proof "fit."
+*   **The Cheat:** Hidden in the middle of a "step-by-step" breakdown, the model will flip $(z * (w * x))$ to $((z * w) * x)$ without an associativity axiom.
+*   **Negative Constraint:** Explicitly flag any move that changes the branching direction of a symbolic tree (left-nested vs. right-nested) as a high-probability error.
+
+--- Batch 9 Analysis ---
+Based on the analysis of the provided cases and common failures in equational logic tasks (where models incorrectly claim an implication is TRUE), here is a **Safety Warning List** of hallucination patterns and logical pitfalls.
+
+### 1. Illegal Substitutions: The "Hidden Property" Trap
+Models often implicitly assume algebraic properties that are not present in the axioms (Eq1).
+*   **The Associativity Default:** Do not treat the magma as a group or semi-group. If Eq1 is `x = (x*y)*(z*z)`, you cannot assume `x = x*(y*(z*z))`. 
+*   **The Commutativity Ghost:** Replacing `(a*b)` with `(b*a)` without an explicit commutativity axiom is the most common "fake" step.
+*   **The "Unit" Hallucination:** In `hard_0075`, Eq1 `x = (x*y)*(z*z)` suggests that `(z*z)` acts like a right-identity. Models often hallucinate that if `(z*z)` acts as an identity for `(x*y)`, then it must be a global identity `e` such that `a*e = a` for all `a`. This is false; the property might be context-dependent.
+
+### 2. Circular Reasoning: The "Conclusion as Axiom" Pitfall
+Models frequently "prove" Eq2 by using Eq2 as a substitution step.
+*   **Target-to-Source Backtracking:** A model might start with the LHS of Eq2 and, while trying to reach the RHS, perform a substitution that is only valid if Eq2 is already true.
+*   **Example:** To prove `x*x = x*((y*z)*w)`, a model might "simplify" the RHS to `x*x` by claiming `((y*z)*w)` is a dummy variable that cancels out, citing Eq1's structure, without demonstrating the specific algebraic path to that cancellation.
+
+### 3. Symbolic Overload: The "Complexity Threshold"
+Logic tends to break down when the "Nesting Depth" exceeds 3 levels or the "Variable Count" exceeds 4.
+*   **Variable Erasure:** In `hard_0160` (`x = y*(z*(w*(u*x)))`), models lose track of the specific mapping between variables. They often treat `y, z, w, u` as a single generic "prefix" and assume that if `Prefix1 * x = x`, then `Prefix2 * x = x` must also be true.
+*   **The Anchor Slip:** Models forget which variable is the "anchor" (the one $x$ that remains constant) versus the "parameters" (the $y, z, w$ that can be anything). They often swap a parameter for the anchor in deep nesting.
+
+### 4. Notation & Scope Errors: Parenthetical Blindness
+*   **LHS vs. RHS Bias:** Models often prioritize the left side of an equation. In `x = (x*y)*(z*z)`, they focus on the $x$ on the far left and "ignore" the complexity of the $(z*z)$ term, treating it as a constant rather than a functional part of the equation.
+*   **Shadowing:** Models often fail to recognize that the `x` in `x = (x*y)*(z*z)` is universally quantified. When trying to prove `x*x = ...`, they may fail to substitute the *entire* expression of Eq1 into *both* instances of `x` in Eq2, instead only substituting one and leaving the other "naked."
+
+### 5. The "Trivial Theory" Hallucination
+*   **Collapse to Constant:** Models often hallucinate that an equation implies "all elements are equal" (the trivial magma). If Eq1 looks restrictive, the model may conclude `x = y`, which would make all Eq2s TRUE. 
+*   **Constraint:** Unless you can prove `x = y` through a finite chain of substitutions, you must assume the magma has more than one element.
+
+---
+
+### Final System Prompt Negative Constraints (Summary)
+1.  **NEVER** reorder terms (commutativity) or move parentheses (associativity) unless Eq1 explicitly defines those properties.
+2.  **NEVER** assume a term is an "identity element" or "constant" unless you can derive `a*C = a` and `C*a = a` for all `a`.
+3.  **DO NOT** simplify the expression by "ignoring" variables that appear to be redundant; every variable in a magma is distinct unless proven otherwise.
+4.  **VALIDATION STEP:** Before declaring TRUE, ensure you haven't used any part of Eq2 to justify a transformation.
+5.  **NESTING CHECK:** If the proof requires more than 4 substitutions in a nested term, re-verify each step; this is the "hallucination zone."
+
+--- Batch 10 Analysis ---
+Based on the analysis of the provided cases where the model incorrectly claimed a proof existed (recorded as "TRUE" but verified as "FALSE"), here is a **Safety Warning List** of common hallucination patterns. These patterns represent logical "cheats" and symbolic failures that must be avoided in equational theory reasoning.
+
+### 1. The "Subset Existential" Fallacy (Illegal Domain Partitioning)
+*   **The Hallucination:** The model claims an identity $x = x \cdot (\text{term})$ holds because the set of values produced by $(\text{term})$ is a "proper subset" of the domain, and then defines the operation to fail only on values "outside" that subset.
+*   **The Logic Pitfall:** This assumes that the magma structure can be partitioned arbitrarily without the "bad" values ever being generated by other combinations of variables. In equational logic, $x, y, z, w$ are universal. If you claim a value $d$ is "unreachable" to preserve Eq1 but use it to break Eq2, you must prove $d$ is unreachable for **all** possible variable substitutions, which is rarely true in a closed algebraic system.
+*   **Safety Warning:** Do not assume an element is "unreachable" by a sub-term unless you have a formal inductive proof of its exclusion from the sub-algebra.
+
+### 2. The "Free Magma Congruence" Shortcut
+*   **The Hallucination:** The model invokes the "Free Magma" and claims that because a specific term (e.g., Equation 2) is not "explicitly required" to be identified with $x$ by the congruence of Equation 1, the two are distinct.
+*   **The Logic Pitfall:** This is circular reasoning. The task is to determine if Eq1 *implies* Eq2. Claiming they are distinct in the free magma is just restating that Eq1 does not imply Eq2 without proving it. The model is assuming the independence of the equations to prove their independence.
+*   **Safety Warning:** Invoking a "Free Magma" as a counterexample is invalid unless you provide a concrete representation (e.g., a word-length argument or a specific finite model).
+
+### 3. Structural Over-Simplification (Constant-Row Assumption)
+*   **The Hallucination:** The model defines a magma where $x \cdot y = x$ for "most" values or "fixed rows," then introduces a single "glitch" point to break the second equation.
+*   **The Logic Pitfall:** These "glitch" points often violate the closure or the universal quantification of Equation 1. For example, in `hard_0131`, the model claims $y \cdot 0 = 1$ but $0 \cdot 1 = 0$. This specific mapping might satisfy Eq1 for $x=0$, but the model fails to verify if Eq1 still holds when $x=1, y=0$, etc.
+*   **Safety Warning:** If a counterexample defines a rule for a "special element," the model must explicitly verify Equation 1 for **every** element in the set, not just the "special" one.
+
+### 4. Variable Reuse vs. Independence (The "Substitution Blindspot")
+*   **The Hallucination:** The model argues that because Equation 1 reuses a variable (e.g., $y$ appears twice) and Equation 2 uses four independent variables ($y, z, w, u$), the former cannot imply the latter.
+*   **The Logic Pitfall:** This ignores the possibility of **derived identities**. A theory with variable reuse (like $x \cdot (y \cdot y) = x$) can frequently imply identities with independent variables through substitution (e.g., substituting $y$ with a complex term). The model often stops at a "visual" comparison of the equations rather than a symbolic derivation.
+*   **Safety Warning:** Never conclude that Eq1 does not imply Eq2 simply because the variable counts or nesting depths differ.
+
+### 5. The "Complexity Threshold" Collapse (Symbolic Overload)
+*   **The Hallucination:** In equations with nesting depth > 3 (e.g., `((x*y)*(z*w))*u`), the model stops tracing the actual substitutions and begins using placeholder logic (e.g., "let the inner term be $k$").
+*   **The Logic Pitfall:** By replacing a complex term with a constant $k$, the model hides the fact that $k$ is actually a function of the variables. It then treats $x \cdot k = x$ as a static property, failing to see that changing $y$ or $z$ changes $k$, potentially leading back to the "bad" values it tried to avoid.
+*   **Safety Warning:** Ensure every substitution remains a function of the original variables. If you replace a term with $k$, you must prove the property holds for all possible values of the function $k(y, z, w, \dots)$.
+
+### 6. Notation and Parentheses Misinterpretation
+*   **The Hallucination:** Misinterpreting left-associative vs. right-associative nesting.
+*   **The Logic Pitfall:** In `hard_0102`, the model treats `(((y*z)*w)*u)` as a "4-element product" that can be treated as a single block. It fails to realize that the variable $x$ in Eq2 is nested inside that same structure, creating a recursive dependency.
+*   **Safety Warning:** Explicitly re-parenthesize terms to check for overlapping variable positions before declaring them "independent blocks."
+
+--- Batch 11 Analysis ---
+Based on an analysis of the provided cases where the model incorrectly predicted a proof (Answer: TRUE) while failing to provide a valid logical derivation or providing a broken counterexample, we have identified several recurring hallucination patterns.
+
+The following **Safety Warning List** outlines these pitfalls to avoid when evaluating or generating equational proofs.
+
+### 1. The "Free Magma" Syntactic Fallacy
+*   **The Hallucination:** Claiming that because a term in `equation2` does not *syntactically match* the structure of `equation1`, they cannot be equal.
+*   **Example (hard_0063):** The model argued that because `((y*z)*w)*x = x` involves a left-associative triple, a right-associative term like `z*(w*u)` cannot act as an identity.
+*   **The Reality:** Equational theories are about the equivalence classes formed by the relations. A right-associative term might be reducible to a left-associative term through strategic substitutions of other variables.
+*   **Constraint:** Do not assume distinct syntax implies distinct value. You must prove two terms are not equivalent using a consistent model, not just "visual inspection."
+
+### 2. Phantom Commutativity and Associativity
+*   **The Hallucination:** Reordering terms (e.g., swapping `x*y` to `y*x`) or shifting parentheses without an explicit axiom allowing it.
+*   **Example (hard_0179):** The model simplified `(x*y)*(z*z)` as if the `z*z` term was a global constant or idempotent element that could be ignored or moved, even though Eq1 only defines it in a specific nested context.
+*   **Constraint:** Every step must be a direct substitution of the given axiom. If `x*y = y*x` is not the axiom, any swap is an "Illegal Substitution."
+
+### 3. "Broken Table" Counterexamples
+*   **The Hallucination:** Inventing a finite set (e.g., $M = \{a, b, s, t\}$) and a binary operation that "satisfies" Eq1 but "violates" Eq2, where the operation table is actually mathematically inconsistent with Eq1.
+*   **Example (hard_0052):** The model defined a complex partitioning of a set into $S_0, S_1...$ but then defined an operation where $1*1=1$ even though the axiom required it to equal $0$ in that specific context.
+*   **Constraint:** If providing a counterexample, every single substitution of the magma's elements into `equation1` must hold. "Complex-sounding" rules often hide basic arithmetic errors.
+
+### 4. Semantic Partitioning Failure (Symbolic Overload)
+*   **The Hallucination:** Categorizing elements into "types" (e.g., "all squares return $s$") to simplify the logic, then losing track of these types in nested expressions.
+*   **Complexity Threshold:** Logic generally breaks down when an equation contains more than 4 variables or nested depths greater than 3.
+*   **Example (hard_0179):** The model failed to track that if $x$ is defined by its relation to $(z*z)$, then changing $z$ affects the identity of $x$.
+*   **Constraint:** Avoid "Generalizing" the axiom (e.g., "This means all squares are identities"). Keep the axiom in its strict symbolic form.
+
+### 5. The "Label Mismatch" / Verdict Flip
+*   **The Hallucination:** The model's reasoning correctly identifies that an implication is likely FALSE (by attempting a counterexample), but the final output is forced to TRUE, or vice-versa.
+*   **Pattern:** In `hard_0179` and `hard_0063`, the model wrote "VERDICT: FALSE" inside the reasoning but the system metadata recorded `model_answer: true`.
+*   **Constraint:** Ensure the final declaration matches the derived proof. If the proof fails or is incomplete, do not default to "TRUE" simply because the equations look similar.
+
+### 6. The "Identity Collapse" Error
+*   **The Hallucination:** Assuming that if $x = \text{expression}(x, y, z)$, then the "expression" part must be an identity element ($e$). 
+*   **Example (hard_0079):** Assuming $x = x * (\dots)$ implies $(\dots)$ is a right identity.
+*   **The Reality:** In many magmas, an element can be a "contextual identity" for a specific $x$ without being a universal identity for all $x$.
+*   **Constraint:** Do not introduce a "1" or "e" (Identity element) into the proof unless the theory explicitly defines one.
+
+### 7. Circular Substitution
+*   **The Hallucination:** Proving $A=B$ by substituting $B$ into the equation and showing it results in $B=B$.
+*   **Example:** To prove $x*x = x*((y*z)*w)$, the model assumes $x*x$ can be replaced by the RHS and then concludes the RHS equals itself.
+*   **Constraint:** Always transform the Left Hand Side (LHS) to the Right Hand Side (RHS) using only the provided axioms; never assume the equality of the target equation during the derivation.
+
+--- Batch 12 Analysis ---
+Based on the meta-analysis of the provided cases, where the model failed by either providing a "False" verdict despite a "True" label or by constructing logically impossible counterexamples, here is a **Safety Warning List** of hallucination patterns.
+
+### 1. The "Non-Product Element" Fallacy (Domain Blindness)
+*   **The Hallucination:** The model claims that an element $d$ is "not reachable" or "never produced by the binary operation" and therefore does not have to satisfy the equation when substituted into variables.
+*   **Logical Pitfall:** In equational theories, equations must hold for **all** elements in the set. If $x = (y * z) * x$ must hold, and you define a magma where no product ever results in $d$, the equation **still fails** if you set $x = d$, because the right-hand side $(y * z) * d$ will result in some element $c \neq d$.
+*   **Constraint:** You cannot exempt elements from an identity based on their "source" or "origin."
+
+### 2. The "Ghost Table" Contradiction (Internal Inconsistency)
+*   **The Hallucination:** The model provides a written description of a magma's properties (e.g., "$0$ is a left identity") but provides a Cayley table or specific values that directly contradict that description (e.g., `0 * 0 = 1`).
+*   **Logical Pitfall:** This usually occurs when the model tries to force a counterexample to work. It assumes a property to simplify the proof but fails to verify if that property can actually exist alongside the other definitions.
+*   **Constraint:** Every specific value assigned to $a * b$ must be checked against every general rule stated in the reasoning.
+
+### 3. Identity "Over-Generalization"
+*   **The Hallucination:** Claiming that an equation like $x = x * ((y * z) * (w * u))$ implies that **all** products are right identities.
+*   **Logical Pitfall:** The equation only implies that elements *of a specific form* (in this case, results of $(y*z)*(w*u)$) act as identities. The model often hallucinates that this applies to all elements or, conversely, fails to realize that if the set is small (e.g., size 2), almost every element might accidentally fall into that "specific form."
+*   **Constraint:** Distinguish between "all elements $x$ satisfy $x*a=x$" and "all elements $a$ are of the form that satisfy $x*a=x$."
+
+### 4. Step-wise Complexity Collapse (Symbolic Overload)
+*   **The Hallucination:** When evaluating nested terms like $(d * (d * (d * d))) * d$, the model loses track of the current value.
+*   **Logical Pitfall:** The model often skips steps or "snaps" to a preferred result (like $0$ or $1$) to force the counterexample to prove the verdict. In `hard_0121`, the model evaluated a 4-step operation and reached $0 \neq 1$, but the intermediate steps often violate the very table it just defined.
+*   **Constraint:** Every nested operation must be evaluated inside-out with an explicit trace. If the trace is missing, the result is likely hallucinated.
+
+### 5. The "Partial Table" Escape
+*   **The Hallucination:** The model starts defining a Cayley table to disprove an implication but stops halfway (e.g., `hard_0079`).
+*   **Logical Pitfall:** A counterexample is only valid if the operation is **total** (defined for all pairs). By leaving the table unfinished, the model avoids facing the fact that any way it completes the table might actually satisfy the second equation or violate the first.
+*   **Constraint:** A counterexample is invalid unless it defines a complete $N \times N$ matrix for the operation.
+
+### 6. Pseudo-Substitution (Illegal Commutativity)
+*   **The Hallucination:** Treating $(x * y)$ and $(y * x)$ as interchangeable during a derivation when commutativity is not given in `eq1`.
+*   **Logical Pitfall:** The model often reorders variables to make them "look like" the target equation (`eq2`).
+*   **Constraint:** No variable reordering is permitted unless $a * b = b * a$ is explicitly derived from the base theory.
+
+### 7. Circular Definition of Sets
+*   **The Hallucination:** Defining a magma set $M = \{0, 1, c, d\}$ where $c$ is defined as "the result of any product," but then defining $d * d = 0$.
+*   **Logical Pitfall:** If $d * d = 0$, then $0$ is a product. If $c$ is "the result of any product," then $0$ must be $c$. The model treats "categories" of elements as distinct even when its own rules merge them.
+*   **Constraint:** Definitions of the form "All products result in $X$" must be strictly enforced; no exceptions like "except for these specific values" are allowed unless those values are also $X$.
+
+### Summary Warning for Final System Prompt:
+> **"When evaluating if Eq1 implies Eq2: Do not assume elements can be exempt from identities based on their role. If you provide a counterexample, you must provide a full, consistent Cayley table. Every step of symbolic reduction must be shown; do not leap to a conclusion to match a desired verdict. Beware of treating non-commutative magmas as commutative."**
+
+--- Batch 13 Analysis ---
+Based on an analysis of the provided cases where the model incorrectly identified implications as TRUE or provided flawed reasoning for FALSE results, here is a **Safety Warning List** of hallucination patterns. 
+
+These represent "fake" math steps and logical pitfalls that should be explicitly forbidden or guarded against in future prompts and system instructions.
+
+### 1. The "Ghost" Counterexample Hallucination
+*   **The Pitfall:** The model provides a Cayley table (multiplication table) and asserts it satisfies Equation 1, but the table actually violates it when tested against all permutations.
+*   **Example (from `hard_0061` and `hard_0150`):** The model claimed a 2x2 or 4x4 table satisfied $E_1$, but a manual check of $x, y, z$ combinations revealed $LHS \neq RHS$.
+*   **Safety Warning:** **NEVER** accept a counterexample table without internal verification of every variable permutation. Do not assume a "biased" table (e.g., $x * y = x$) automatically satisfies complex nested equations.
+
+### 2. The "Variable Fixedness" Fallacy
+*   **The Pitfall:** Treating a universally quantified variable as if it has a fixed "type" or "structural depth" that prevents it from being substituted.
+*   **Example (from `hard_0061`):** The model argued that because $E_2$ contains a lone variable $w$, it cannot be "unified" with a complex product structure from $E_1$.
+*   **Safety Warning:** In equational logic, variables are placeholders for **any** term. A lone variable $w$ can represent a deeply nested product. Avoid reasoning that relies on the "visual complexity" or "depth" of an equation to prove non-implication.
+
+### 3. Verification-Verdict Mismatch (The "Label Flip")
+*   **The Pitfall:** The model performs reasoning that concludes the implication is FALSE (often by attempting a counterexample), but then selects `Answer: TRUE` in the final output field.
+*   **Example (from `hard_0112`, `hard_0061`):** Reasoning ends with "Thus, $E_1 \not\implies E_2$," but the metadata label is `true`.
+*   **Safety Warning:** Implement a "Final Sanity Check" step. The logical conclusion of the reasoning text must match the final Boolean verdict. "TRUE" must only be used if a step-by-step derivation (substitution/transitivity) is completed.
+
+### 4. Structural Hand-Waving (Prose-based "Proofs")
+*   **The Pitfall:** Using descriptive language like "nested prefixes" or "right-branching constraints" instead of performing actual symbolic substitutions.
+*   **Example (from `hard_0112`):** Reasoning says "Equation 1 constrains right multiplications... forcing those prefixes * x = x" without showing the algebraic chain.
+*   **Safety Warning:** Prose is not a proof. **Negative Constraint:** Do not use qualitative descriptions of "structure." Only use the three valid moves of equational logic:
+    1.  **Substitution:** Replacing a variable with a term.
+    2.  **Replacement:** Replacing a subterm with an equal subterm.
+    3.  **Symmetry/Transitivity.**
+
+### 5. The "Empty Reasoning" Shortcut
+*   **The Pitfall:** Claiming an implication is TRUE without providing any derivation or text.
+*   **Example (from `hard_0164`, `hard_0174`):** Model outputs `model_answer: true` with an empty `model_response`.
+*   **Safety Warning:** **Mandatory Chain-of-Thought.** Any "TRUE" verdict must be accompanied by a sequence of equations $t_0 = t_1 = t_2 \dots = t_n$ where each step is justified by a specific application of Equation 1.
+
+### 6. Pseudo-Associativity / Commutativity
+*   **The Pitfall:** Implicitly assuming $x*(y*z) = (x*y)*z$ or $x*y = y*x$ to simplify terms when the theory is a raw Magma (no such axioms given).
+*   **Example:** Simplifying `(((x * y) * y) * x)` by moving parentheses to match Equation 1’s structure.
+*   **Safety Warning:** If the theory does not explicitly provide the associative or commutative law, any re-parenthesization or re-ordering of variables is an **illegal move**.
+
+### 7. Complexity Threshold Collapse
+*   **The Pitfall:** In equations with >4 levels of nesting, the model loses track of which variable is which, leading to "Symbolic Overload."
+*   **Example:** In `hard_0112`, the model confuses $y$ and $z$ during the "prefix" analysis.
+*   **Safety Warning:** When dealing with deep nesting, use **Intermediate Substitution Variables** (e.g., "Let $u = (y*z)$"). This prevents the model from miscounting parentheses or swapping variable positions.
+

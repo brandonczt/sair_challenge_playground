@@ -1,0 +1,193 @@
+# **Category Master Report: Equational Theory Derivation (FN)**
+
+This report synthesizes multiple batch analyses concerning **False Negatives (FN)**—cases where a logical implication is true, but the model fails to produce a valid proof, prematurely abandons the search, or substitutes rigorous derivation with "semantic bluffing."
+
+---
+
+### **1. Core Pillars (Successful Strategy Groupings)**
+To overcome the failure to derive, the following "Core Pillars" must be enforced to transition the model from a "human-like" mathematical writer to an **Automated Theorem Prover (ATP)**:
+
+*   **Syntactic Rigor (The Substitution Chain):** Success is found only when the model treats the problem as a pure string-rewriting task. Every step must be an explicit equation $A=B$ with a documented mapping (e.g., $x \gets [term]$).
+*   **Variable Unification & Shadowing:** The most powerful tool for simplifying complex axioms is "self-unification"—setting $x=y$, $y=z$, or substituting a variable with a complex term already present in the axiom to force nested patterns to collapse.
+*   **Intermediate Lemmatization:** High-impact proofs are rarely direct. They require "stepping stones" (e.g., first proving idempotence $x*x=x$, commutativity $x*y=y*x$, or the existence of a constant $c$) before attacking the target equation.
+*   **Bidirectional Convergence:** Simultaneously working forward from Equation 1 (expansion) and backward from Equation 2 (un-simplification) to find a common intermediate term.
+
+---
+
+### **2. Critical Failure Points (Hallucinations & Pitfalls)**
+*   **Semantic Hand-wavy Shortcuts:** Models often cite "known theorems," "finite magma checks," or properties like "left-zero semigroups" and "surjectivity" to avoid doing the actual algebra.
+*   **The "Singleton" Trap (Complexity Bias):** When an equation looks daunting, models often hallucinate that the theory "collapses" into a 1-element magma ($x=y$) to "zero out" the difficulty, rather than finding the algebraic path.
+*   **Premature Abandonment (Depth 0-2):** Models typically give up after 2-3 trivial substitutions if a result isn't immediate, pivoting to verbal justifications instead of deeper search.
+*   **Expansion Loops & Term Bloat:** Falling into a "local optimum" where terms are expanded infinitely (e.g., $x \to x*x \to (x*x)*(x*x)$) without ever applying a reduction step to shrink the expression.
+
+---
+
+### **3. Rank by Impact (High-Frequency Patterns)**
+1.  **Metalogic Displacement (Highest Impact):** Replacing symbolic manipulation with descriptive English (e.g., "The surjectivity of $L_x$ implies...").
+2.  **Substitution Timidity:** Only attempting simple variable swaps ($x \to y$) while ignoring "machine-like" complex substitutions (e.g., $x \to (y*z)*y$) necessary for unification.
+3.  **Missing "Expand-and-Collapse" Bridges:** Failing to intentionally inflate an equation to trigger a latent axiom pattern that allows for a massive simplification.
+
+---
+
+### **4. Actionable Logic (Derivation Rules & Triggers)**
+
+#### **Derivation Rules (To enforce in prompts):**
+*   **Rule of 10:** You must perform at least 10 distinct, numbered algebraic substitutions before concluding a proof is unreachable.
+*   **The Identity Trigger:** If the target equation contains a variable not in the source, your primary sub-goal is to derive an "absorbing element" or "constant transformation" (e.g., $x*f(y)=x$).
+*   **The 15-Symbol Ceiling:** If an intermediate term exceeds 15 symbols, you must **[BACKTRACK]**. Discard the branch and attempt a different, non-obvious substitution.
+*   **Symmetry Test:** For every derived lemma $x = f(x, y)$, immediately test the results of swapping $x \leftrightarrow y$.
+
+#### **Refutation Heuristics (When to stop proving and start disproving):**
+*   **Counter-Model Trigger:** If the axiom is satisfied by a specific 2-element magma that violates the target equation, immediately stop the proof and provide the operation table for that magma.
+*   **The $x=y$ Constraint:** Only declare a "Trivial/Singleton Magma" if you can provide a direct syntactic chain proving $x=y$ for any arbitrary $x$ and $y$. Do not assume triviality based on "complexity bias."
+
+---
+
+### **Persistence Strategy (Prompt Addition)**
+> *"Do not justify equivalence via magma classes or 'known results.' Every step must be a pure syntactic substitution. Ban all semantic terms (surjective, bijective, affine). If stuck, generate intermediate lemmas (e.g., $x*x=x$) and use them as bridges. You must expand terms aggressively to find structural overlaps, then collapse them using the axiom."*
+
+
+This **Category Master Report (FN)** synthesizes multiple batch analyses of failed proof searches where models correctly identified a "True" implication but failed to provide a valid, step-by-step equational derivation.
+
+### **Core Pillars (Key Logical Patterns)**
+1.  **Deep Syntactic Rewriting (Forward & Backward):** Successful strategies require moving beyond 2–4 steps. This involves "Term Bloat"—purposely expanding a variable $x$ into a complex expression from the axiom’s RHS—to create the structural "surface area" needed for cancellation or transformation into Equation 2.
+2.  **Strategic Lemma Generation:** Instead of jumping to the final equation, successful derivations identify intermediate "fixed points" or "local identities" (e.g., proving $x*x = x$ or $x*y = x*(z*z)$).
+3.  **Variable Shadowing & Functional Range:** Recognizing that if a variable $z$ appears only on one side of an equation, it represents an arbitrary element in the image of the magma. This allows treating complex terms as "blobs" to isolate the behavior of other variables.
+4.  **Bi-directional Convergence:** Transforming Eq1 forward and Eq2 backward simultaneously to find a "Bridge Term" where the two structures unify.
+
+---
+
+### **Critical Failure Points (Hallucinations & Pitfalls)**
+1.  **The Triviality Trap (Model-Theoretic Bailout):** Models prematurely conclude that Equation 1 is so restrictive it forces the magma to be a singleton ($|M|=1$). They stop the proof there, assuming "everything is true in a 1-element set," which fails formal syntactic verification.
+2.  **Semantic Classification Bias:** Models attempt to classify the structure as a "Quasigroup," "Boolean Group," or "Left-Zero Magma" rather than performing algebraic substitutions. They substitute formal logic with prose-based "meta-arguments."
+3.  **Implicit Property Hallucination:** Incorrectly assuming associativity or commutativity. Models often "clean up" nested parentheses (e.g., moving from $a*(b*c)$ to $(a*b)*c$) without a derivation, which is an illegal move in raw equational theory.
+4.  **Search Ceiling (The 3-Step Wall):** Models hit a "complexity ceiling" after 3 substitutions. If the target isn't visible, they stop calculating and resort to generic claims like "it can be shown that..." or provide empty/truncated responses.
+
+---
+
+### **Refutation Heuristics (Disproving Implication)**
+1.  **Non-Triviality Check:** Before concluding "True" via collapse, attempt to construct a size 2 or 3 magma table. If a 2-element "Left-Zero" ($a*b=a$) or "Right-Zero" ($a*b=b$) table satisfies Eq1 but violates Eq2, the implication is false.
+2.  **Variable Decoupling:** if Eq2 requires a variable $z$ to be eliminated that is "trapped" in a non-cancelable position in Eq1, the implication likely fails unless Eq1 implies a constant magma.
+3.  **Permutation Testing:** If Eq1 suggests the operation is a bijection (permutation) but Eq2 implies a constant result, look for counter-examples in symmetric groups.
+
+---
+
+### **Actionable Logic (Derivation Rules)**
+*   **Rule of Expansion:** "If $Eq1: x = \text{Term}(x, y)$, and $Eq2$ is more complex than $Eq1$, substitute $x \to \text{Term}(x, y)$ into itself at least three levels deep."
+*   **Rule of Explicit Mapping:** "For every step, explicitly define the mapping $\sigma = \{x \mapsto \text{subterm}_1, y \mapsto \text{subterm}_2\}$. Verify parenthesis matching strictly after every substitution."
+*   **Anti-Collapse Trigger:** "If the result of a substitution is $x=y$, backtrack. Look for a 'heavy' substitution (replacing a single variable with a nested term) instead of a 'collapsing' substitution (setting $y=x$)."
+*   **The Bridge Requirement:** "To link $x*y$ to $y*x$, search for a substitution that isolates a term $e$ such that $e*x = x$ and $x*e = x$."
+
+This Master Report synthesizes the analysis of multiple batch reports concerning "False Negative" (FN) failures in the Equational Theories challenge—where models fail to find valid proofs or provide hallucinated ones.
+
+### **Core Pillars (Successful Strategies)**
+1.  **Strict Syntactic Term Rewriting:** Treat the model as a mechanical theorem prover (e.g., Prover9). The only valid currency is the unbroken chain of equalities ($A=B, B=C \implies A=C$).
+2.  **Strategic "Term Bloat" (Expansion):** Valid proofs often require "uphill" moves where terms become significantly more complex, nested, and "messy" before they collapse into the target identity.
+3.  **Compound/Recursive Substitution:** Breakthroughs occur by substituting a variable with a complex term (e.g., $y \to (x*z)$) or replacing a variable with an entire side of the source axiom (Self-Nested Substitution).
+4.  **Goal-Oriented Lemma Generation:** Instead of attacking the target equation directly, derive intermediate "stepping-stone" identities (e.g., searching for idempotence $x*x=x$, or left-identities $e*x=x$).
+5.  **Bidirectional Search:** Simultaneously transform the source equation forward and the target equation backward to find a common intermediate "bridge" term.
+
+### **Critical Failure Points (Hallucinations to Avoid)**
+1.  **The "Semantic Shortcut" Trap:** Models pivot to high-level algebraic concepts (e.g., "this must be a Quasigroup," "the magma is trivial $|M|=1$," "the mapping is bijective") to bypass the manual labor of term rewriting.
+2.  **Shallow Search Ceiling:** Models typically abandon valid algebraic manipulation after only 1–3 steps, transitioning into "hallucination mode" or linguistic filler ("a short calculation shows...") to bridge the gap.
+3.  **Complexity Bias:** A "Surrender Heuristic" where the model assumes a derivation is impossible because the target equation looks too nested or different from the source, leading it to falsely claim a "structural collapse."
+4.  **The "Idempotency" Local Optimum:** Getting stuck in a loop trying to prove a specific property (like $x*x=x$) that may be true but is not the most direct path to the target proof.
+5.  **Illusory Search Depth:** Generating 20+ steps of "logic" that contain no actual algebraic substitutions, using mathematical-sounding prose to mask a lack of rigor.
+
+### **Refutation Heuristics (Actionable Logic)**
+*   **Trigger 1: Substitution Exhaustion.** If 10 distinct substitution cycles (including "uphill" expansions) fail to yield a pattern or "kernel," shift to counterexample search.
+*   **Trigger 2: Non-Collapse Verification.** If the magma is suspected to be trivial ($x=y$), explicitly attempt to construct a size-3 or size-4 magma model that satisfies Eq1 but violates Eq2. Do not rely on size-2 models.
+*   **Trigger 3: Divergence Check.** If an expansion exceeds 5-6 levels of nesting without producing sub-terms present in the target equation, "BACKTRACK" and choose a different variable to expand.
+*   **Trigger 4: Anti-Heuristic Rule.** If the logic relies on a "known theorem" or "structural property" (e.g., "Boolean Group"), the proof is likely an FN hallucination unless that property is derived syntactically from the axiom.
+
+### **Derivation Rules for Prompting**
+*   **Rule of Ten:** "You must perform at least 10 numbered syntactic substitution steps before concluding a proof is not found."
+*   **Strict Mapping Mandate:** "Every step must explicitly declare the variable mapping. Format: `Apply Eq1 with [x -> term1, y -> term2]`."
+*   **The "Kernel" Search:** "Identify the innermost nested term of the target equation and make its derivation your primary intermediate goal (Lemma 1)."
+*   **Ban Semantics:** "Forbidden terms: 'trivial', 'singleton', 'quasigroup', 'bijection', 'surjective', 'finite model'."
+
+This synthesis filters the provided batch reports into a high-density Category Master Report focusing on **False Negative (FN)** patterns—where models fail to find a valid proof despite the implication being true.
+
+### **Core Pillars (Recurring Strategies & Errors)**
+1.  **The Semantic Escape Hatch:** Models abandon syntactic string manipulation (substitution) in favor of high-level prose about group theory, quasigroups, or set theory.
+2.  **The Triviality/Singleton Trap:** When faced with restrictive axioms, models prematurely conclude the magma must collapse to a single element ($|M|=1$), using this as a "shortcut" to claim any target equation is true.
+3.  **Syntactic Myopia (Shallow Search):** Models typically hit a "depth wall" at 2–3 substitution steps. They fail to perform "Inflationary Substitutions" (making an equation larger/more complex) which are often necessary before a term can collapse into the target.
+4.  **Structural Hallucination:** Models "invent" identity elements ($e$), inverses, or properties like commutativity and associativity to bridge the gap between dissimilar equations without deriving them.
+
+---
+
+### **Key Logical Patterns (Successful Strategies)**
+*   **Diagonalization/Expansion:** Systematically testing $y=x, z=x$ to find idempotent elements ($x*x=x$) or involutions before attacking the main goal.
+*   **Target-Oriented Unification (Backwards Chaining):** Looking at the outermost structure of `eq2` and identifying what specific term must be substituted into `eq1` to generate that matching "shell."
+*   **Dummy Variable Exploitation:** Identifying variables that appear on only one side of an equation and substituting highly complex terms into them to force cancellations elsewhere.
+*   **Self-Substitution (Deep Nesting):** Substituting the entire RHS of an axiom back into one of its own variable slots to reveal non-obvious cancellation paths.
+
+---
+
+### **Critical Failure Points (Pitfalls to Avoid)**
+*   **Premature Termination:** Stopping the algebraic chain because "it looks like a Boolean group" instead of providing the 10+ steps of string replacement required.
+*   **"Handwaving" Iteration:** Using phrases like "by symmetry" or "iterating this step gives..." without showing the intermediate lemmas.
+*   **Operator Loop:** Converting $x * y$ into translation maps ($L_x, R_y$) and proving properties for the operators, but then failing to re-translate those properties back into the required magma syntax.
+*   **Asymmetry Shock:** Giving up because `eq2` has more variables or a different nesting depth than `eq1`, leading to "Triviality" hallucinations to bridge the complexity gap.
+
+---
+
+### **Refutation Heuristics (Triggering the "Search to Disprove" Shift)**
+*   **Variable Independence:** If `eq1` can be reduced to a form where a variable on the RHS has no syntactic connection to the LHS, and `eq2` requires a strict dependency, start looking for a counter-model.
+*   **Conservation of Complexity:** If all valid substitutions in `eq1` strictly preserve a property (e.g., all terms have an even number of $x$’s) while `eq2` violates it, the implication is likely false.
+*   **Failure of $|M|=2$:** If a simple brute-force check of all 2-element magmas (16 total) fails to find a counter-example, *only then* revert to the "Triviality" hypothesis, but treat it as a proof goal ($x=y$), not a shortcut.
+
+---
+
+### **Actionable Logic (Derivation Rules)**
+1.  **Rule of Explicit Mapping:** Every step must be formatted as: `Apply Eq1 [x:=TermA, y:=TermB] to get Lemma X`. No prose allowed.
+2.  **The 5-Lemma Minimum:** Before attempting to reach the target, generate 5 intermediate identities using "Inflationary" substitutions (substituting compound terms into variables).
+3.  **The "Structure Ban":** Strictly forbid the terms "Group," "Identity," "Bijection," or "Trivial" unless $x*e=x$, $x*x^{-1}=e$, or $x=y$ are derived purely via string replacement.
+4.  **Bridge Requirement:** If stuck, work 3 steps forward from `eq1` and 3 steps backward from `eq2`. Attempt to unify the terms at the meeting point.
+
+This synthesis transforms the provided batch reports into a **Category Master Report** for addressing False Negatives (FN) in equational theory proofs.
+
+### **Core Pillars of Equational Proof Failure**
+1.  **The Semantic Trap (Model-Theoretic Hallucination):** Models abandon syntactic rewriting for "hand-wavy" structural arguments (e.g., claiming the magma is a "singleton," "trivial," or a "Boolean group"). They equate *understanding* why a property might hold with *proving* it through substitution.
+2.  **Shallow Search Depth & Premature Convergence:** Models typically halt after 1–3 trivial substitutions. If a direct path to the target isn't visible, they stop searching or leap to radical structural simplifications rather than exploring the search tree.
+3.  **Expansion/Complexity Bias:** Models are intimidated by "term bloat." They either refuse to generate deeply nested strings or get stuck in "expansion loops" (LHS $\to$ RHS) without knowing how to apply axioms in reverse (RHS $\to$ LHS) to collapse terms.
+4.  **Missing Substitution Chains:** Failure to utilize "unobvious" compound substitutions (e.g., substituting $x \leftarrow (y * z)$ or $x \leftarrow \text{Axiom}$) which are required to bridge structurally disparate equations.
+
+---
+
+### **Critical Failure Points (Pitfalls to Avoid)**
+*   **The "Triviality" Escape Hatch:** Assuming $|M|=1$ or $x=y$ just because the axiom looks "restrictive." 
+*   **AST Tracking Errors:** Hallucinating the collapse of nested terms (e.g., $x * (x * x)$ becoming $x * x$) to force a match with the target.
+*   **Prose-Based Bridging:** Using phrases like "through a series of substitutions..." or "it can be shown..." to skip the actual algebraic derivation.
+*   **Local Optima (Functional Loops):** Repeatedly deriving that $L_x$ is a permutation or bijection without using that property to perform a specific string replacement.
+
+---
+
+### **Refutation Heuristics (When to stop proving/start disproving)**
+*   **Structural Mismatch:** If Equation 1 is balanced (equal number of variables/ops on both sides) but Equation 2 is highly "absorbing" (many variables reduced to one), the theory is likely not trivial; look for a countermodel.
+*   **Independence of Variables:** if Equation 2 introduces a variable not present in Equation 1 (and Eq 1 isn't an absorbing/constant law), the implication is likely false.
+*   **Failed Triviality Test:** If the model cannot derive $x=y$ within 5 steps of "Bridge" substitutions (Axiom into Axiom), the magma is likely non-trivial.
+
+---
+
+### **Actionable Logic: The "Syntactic Grit" Protocol**
+
+**Rule 1: Mandate "Bridge" Substitutions (Deep Self-Substitution)**
+If the target is simpler than the axiom, substitute the *entire axiom* into its own variables. 
+*   *Action:* If $x = f(x, y)$, substitute $y \leftarrow f(z, w)$ to create $x = f(x, f(z, w))$. This "term inflation" is often necessary before cancellation can occur.
+
+**Rule 2: Enforce Bidirectional Search (The Mid-Point Target)**
+If forward progress from $Eq1$ stalls, work backward from the RHS of $Eq2$. 
+*   *Action:* Apply $Eq1$ in reverse (expansion) to $Eq2$. Aim to meet the forward derivation at a common complex intermediate term.
+
+**Rule 3: Strict "Sub-term Paramodulation"**
+Do not just substitute into the main variables ($x, y, z$). Target specific inner sub-terms for replacement.
+*   *Action:* Identify a nested structure in the target and find a substitution for the axiom that makes its LHS match that specific sub-structure.
+
+**Rule 4: Explicit Alias Management**
+To prevent context-window exhaustion and mental "drift" during complex proofs, use temporary aliases.
+*   *Action:* Define $A = (x * y)$. Rewrite the term as $f(A, z)$. Only expand $A$ when a cancellation with another $(x * y)$ term is possible.
+
+**Rule 5: The "Five-Step Minimum" Exploration**
+Prohibit "Impossible" or "Trivial" conclusions until a minimum of 5 distinct substitution maps have been attempted.
+*   *Action:* Mandatory exploration of $x \leftarrow (x * x)$, $y \leftarrow x$, and variable swapping $(x \leftrightarrow y)$ before exiting the search.

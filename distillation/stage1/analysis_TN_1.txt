@@ -1,0 +1,343 @@
+
+--- Batch 1 Analysis ---
+This meta-analysis explores the strategies for refuting implications in equational theories. By examining cases where models correctly identified that $eq1 \not\Rightarrow eq2$, we can derive a systematic approach to finding counter-models.
+
+### 1. Counter-model Construction: The "Minimalist" Approach
+The analysis of successful refutations reveals that most counter-models fall into three distinct categories:
+
+*   **Size of Sets:** 
+    *   **2 Elements ({0, 1}):** Most common for "Structural Mismatches" (e.g., trying to force commutativity or left/right zero properties).
+    *   **3-6 Elements:** Used for "Chained Term Mismatches." When equations involve nested terms or permutations, a 3-element cyclic group or a 5-6 element magma with "exceptions" is required to prevent accidental satisfaction of the second equation.
+    *   **Infinite Magmas ($\mathbb{Z}$):** Rare but powerful for "Growth Rate Mismatches," where one equation implies a fixed value and the other implies a recursive growth (e.g., $2x$ vs $x$).
+
+*   **Operation Definitions:**
+    *   **Constant Magmas:** Setting $x * y = c$ is the fastest way to check if an equation requires variable dependence.
+    *   **Projection Magmas (Left/Right Zero):** $x * y = x$ or $x * y = y$. These are the "Skeptic’s First Choice" because they satisfy associativity and idempotency but fail any equation requiring interaction between variables.
+    *   **Exception-Based Tables:** Starting with a "default" result (usually 0 or 1) and defining 2–4 specific "exception cells" to break the target equation while preserving the premise.
+
+---
+
+### 2. Inconsistency Detection: Early Warning Signs
+Models identified unprovable equations early by looking for **Information Loss**:
+
+*   **Variable Erasure:** If $eq1$ allows a variable to disappear (e.g., $x * (y * z) = (x * x) * z$, where $y$ is irrelevant) but $eq2$ requires that variable to determine the outcome (e.g., $x * (y * z) = (y * y) * x$), the implication is almost certainly false.
+*   **Term Complexity vs. Freedom:** If $eq1$ is a "Reduction" (making terms smaller, like $x * (y * z) = x$) and $eq2$ is an "Expansion" (requiring a specific structure, like $x = x * (y * y)$), the magma is likely too "free" to satisfy the expansion.
+*   **Symmetry Mismatch:** If $eq1$ is symmetric (e.g., $x*y = y*x$) but $eq2$ is not, or if $eq1$ is balanced in variable frequency but $eq2$ is heavily biased.
+
+---
+
+### 3. Search Heuristics: The "Red Flags"
+Before attempting a proof, check for these "Red Flags" that suggest a counter-model is more likely:
+
+1.  **The "Fixed Point" Flag:** $eq1$ defines a square ($x*x$) or a specific term as a constant or identity, but $eq2$ expects that constant to have properties it wasn't assigned.
+2.  **The "Universal Quantifier" Trap:** $eq2$ requires an equality to hold for *all* $w, u$ (as in `hard_0049`), but $eq1$ only constrains $x, y, z$.
+3.  **The "Identity" Mismatch:** $eq1$ implies a right-identity exists, but $eq2$ requires a *specific* complex term to be that identity.
+
+---
+
+### 4. The Skeptic’s Checklist & Counter-Model Recipe
+
+#### **The Skeptic’s Checklist**
+- [ ] **Variable Count:** Does $eq2$ introduce variables not present in $eq1$, or does it rely on variables that $eq1$ "discards"?
+- [ ] **Operation Depth:** Is the nesting level in $eq2$ significantly deeper than in $eq1$ without a clear path of substitution?
+- [ ] **Commutativity/Associativity:** Does $eq1$ hold in a Left-Zero Semigroup ($x*y=x$)? If yes, does $eq2$ fail in it? (This is the fastest "kill" for many problems).
+- [ ] **Image Constraint:** Does $eq1$ only constrain elements that are "results" of the operation? (Check if $eq2$ fails for "input" elements that never appear as "results").
+
+#### **The Minimal Counter-Model Recipe**
+1.  **Test the "Zeros":** Try $M=\{0,1\}$ with $x*y=x$ (Left Zero) and $x*y=y$ (Right Zero).
+2.  **Test the "Constant":** Try $x*y=0$ for all $x,y$.
+3.  **The "Cyclic Shift":** For equations involving 3 variables, try $M=\{0,1,2\}$ where $x*y = (y+1) \pmod 3$.
+4.  **The "Boolean Or/And":** Use $M=\{0,1\}$ with $x*y = \max(x,y)$.
+5.  **The "Exception Table" (For Harder Cases):** 
+    *   Create a table of all 0s.
+    *   Check $eq1$. It likely holds (0=0).
+    *   Find a triplet $(x,y,z)$ where $eq2$ fails (e.g., $0 \neq 1$).
+    *   Change one cell in the table to 1 to satisfy that $eq2$ instance.
+    *   Re-verify $eq1$. If it breaks, add more "1"s to the table to repair $eq1$ until a balance is reached.
+
+--- Batch 2 Analysis ---
+Based on a meta-analysis of the provided correct refutations (True Negatives) in the Equational Theories dataset, here is a breakdown of how the models successfully detect unprovable equations and construct counterexamples, followed by a **Skeptic’s Checklist** and a **Counter-Model Recipe Book**.
+
+---
+
+### Part 1: Meta-Analysis Insights
+
+#### 1. Counter-Model Construction (Sizes and Operations)
+The models do not rely on a single type of counterexample; instead, they select the mathematical structure that best exploits the weakness of `Equation 2`. 
+*   **Small Finite Sets (Sizes 3 and 4):** Used extensively for Cayley tables. A 3-element magma is often sufficient to break idempotence or associativity. A 4-element magma is used cleverly to introduce an "unreachable element" (e.g., an element `3` that is never the result of any multiplication), giving the model freedom to assign arbitrary outputs to falsify `Eq2` without violating `Eq1`.
+*   **Prime Modular Arithmetic ($\mathbb{Z}_7, \mathbb{Z}_{13}$):** Used for **affine linear models** where $x * y = ax + by \pmod p$. This is highly effective for proving that expressions don't algebraically reduce to the same variable.
+*   **Infinite Sets ($\mathbb{Z}$):** Used for **parity-based operations**, such as $x * y = y + (-1)^x$. This tracks the depth and frequency of variables, easily breaking equations where variable nesting parities don't align.
+*   **Cartesian Products ($A \times A$):** Used for **coordinate-swapping operations**, like $(a,b)*(c,d) = (b,c)$. This is perfect for exploiting equations that improperly discard or swap outer/inner variables.
+*   **Free Magmas (Symbolic Word Algebras):** Used when the terms are structurally so divergent that no sequence of substitutions from `Eq1` could ever bridge the gap.
+
+#### 2. Inconsistency Detection (Early Realization of Impossibility)
+The model detects early on that a proof is impossible by observing:
+*   **Variable Independence:** If `Eq2` has a variable on one side that doesn't appear on the other (e.g., $x * (x * y) = z * (y * x)$), the right side algebraically depends on $z$ but the left side does not.
+*   **Generative Range Limits:** If `Eq1` forces all outputs to a restricted subset (e.g., $x*x = 0$), `Eq2` can often be broken by evaluating an element *outside* that subset.
+*   **Property Overreach:** `Eq1` might only be an identity for a deeply nested, specific sequence (e.g., "doing this complex sequence gets you back to $x$"), while `Eq2` demands a broad, universal property like idempotence ($X*X=X$) or cancellation.
+
+#### 3. Search Heuristics ("Red Flags")
+The search for a counterexample is triggered over a proof search when:
+*   **Ghost Variables:** `Eq2` introduces a new variable (like $w$ or $z$) that is unconstrained by `Eq1`.
+*   **Structural Mutation:** A sub-term like $(z * z)$ in `Eq1` is replaced by a non-matching sub-term like $(z * y)$ in `Eq2`, and `Eq1` provides no associative/commutative axioms to swap variables.
+*   **Multiplication Imbalance:** `Eq1` requires double-left multiplication to resolve, but `Eq2` expects a single-left multiplication to yield the same result.
+
+---
+
+### Part 2: The Skeptic’s Checklist
+*If an equational implication checks one or more of these boxes, abort the proof search and look for a counterexample.*
+
+- [ ] **The "Ghost Variable" Check:** Does `Eq2` contain variables not present in `Eq1`? Or does one side of `Eq2` contain a variable missing from the other side? *(If yes, the equation almost certainly fails).*
+- [ ] **The Universal vs. Existential Gap:** Does `Eq2` assert a universal property (e.g., idempotence $x*y = (x*y)*(x*y)$ or commutativity) while `Eq1` only provides a specific identity route (e.g., $f(f(x)) = x$)?
+- [ ] **The Structural Mismatch:** Are there repeating variables in `Eq1` (like $z*z$) that are mismatched in `Eq2` (like $z*y$)?
+- [ ] **Parity/Depth Discrepancy:** Count the number of times a variable is multiplied on the left vs. the right. Do the parity (even/odd) or nesting depths differ fundamentally between `Eq1` and `Eq2`?
+- [ ] **The Absorption Check:** Does `Eq1` force an expression to be independent of certain variables, while `Eq2` assumes those variables still influence the output?
+
+---
+
+### Part 3: The Counter-Model Recipe Book
+*A toolkit for generating minimal counter-models efficiently.*
+
+**Recipe 1: The Affine Linear Model (The Algebraic Hammer)**
+*   **When to use:** When both equations are highly nested but look structurally balanced.
+*   **How to build:** Choose a prime modulo (e.g., $\mathbb{Z}_7$ or $\mathbb{Z}_{13}$). Define $x * y = ax + by \pmod p$. Expand `Eq1` algebraically. Solve for coefficients $a$ and $b$ such that `Eq1` simplifies perfectly (e.g., to exactly $1x + 0y$). Then plug $a$ and $b$ into `Eq2`. If `Eq2` doesn't simplify perfectly, you have your counterexample.
+
+**Recipe 2: The "Unreachable Element" Cayley Table**
+*   **When to use:** When `Eq1` forces an absorbing state (e.g., $x*x = \dots = 0$).
+*   **How to build:** Use a 4-element set $\{0, 1, 2, 3\}$. Design the multiplication table so that the output is *always* $0, 1,$ or $2$. Because $3$ is never the result of any operation, you can define $0 * 3$ to do whatever malicious thing is required to break `Eq2` without ever accidentally breaking `Eq1`'s evaluation chain.
+
+**Recipe 3: The Parity Alternator**
+*   **When to use:** When variables appear at different nesting depths, or `Eq2` has variables with different even/odd occurrences than `Eq1`.
+*   **How to build:** Over the integers $\mathbb{Z}$, define $x * y = y + (-1)^x$. This operation ignores the magnitude of the left variable and only cares if it is even or odd, making it incredibly sensitive to structural depth differences.
+
+**Recipe 4: The Cartesian Coordinate Swap**
+*   **When to use:** When variables are "lost" or swallowed in the inner terms of the equations.
+*   **How to build:** Let $M = A \times A$ (e.g., pairs of $\{0, 1\}$). Define the operation to swap components and drop others, such as $(a,b)*(c,d) = (b,c)$. This isolates specific positional arguments. If `Eq1` relies on middle variables but `Eq2` relies on outer variables, this model will instantly highlight the discrepancy.
+
+**Recipe 5: The Free Magma Quotient**
+*   **When to use:** When `Eq1` and `Eq2` are just completely different shapes and no clever arithmetic is needed.
+*   **How to build:** Define the elements purely as symbolic strings. State that two strings are only equal if `Eq1` can explicitly transform one into the other. Show that applying `Eq1` to the LHS of `Eq2` terminates without ever matching the RHS.
+
+--- Batch 3 Analysis ---
+Based on the meta-analysis of the provided "Correct Refutations," here is the **Skeptic’s Checklist** and the **Recipe for Minimal Counter-models** to efficiently identify and prove unprovable equational implications.
+
+---
+
+### I. The Skeptic’s Checklist: Signs of a False Implication
+
+When presented with $Eq_1 \implies Eq_2$, look for these "Red Flags" that suggest the implication is likely false:
+
+1.  **Variable "Ghosting" or Mismatch:**
+    *   **Red Flag:** $Eq_1$ contains a variable (e.g., $z$) that is absent in $Eq_2$, or vice-versa.
+    *   **Logic:** If $Eq_1$ allows a variable to be "absorbed" or ignored (like a left-zero or a constant row), $Eq_2$ might require that variable to have a specific structural impact that $Eq_1$ doesn't mandate.
+
+2.  **Structural Rigidity vs. Flexibility:**
+    *   **Red Flag:** $Eq_1$ defines a property for a *nested* term, while $Eq_2$ requires a property for a *simple* term (e.g., $Eq_1$ forces $x*(x*y)$ to behave specifically, but $Eq_2$ demands $x*x$ behave specifically).
+    *   **Logic:** $Eq_1$ might only constrain "deep" products, leaving the "shallow" products (like $x*x$) free to vary.
+
+3.  **Property Mismatch (The "Ism" Test):**
+    *   Check if $Eq_1$ is satisfied by a known simple structure (e.g., a **Left-Zero Magma** $x*y=x$ or a **Right-Zero Magma** $x*y=y$).
+    *   **Red Flag:** If a Left-Zero magma satisfies $Eq_1$ but fails $Eq_2$, the implication is immediately disproven. (See *hard_0072*).
+
+4.  **The "Independent Column" Rule:**
+    *   **Red Flag:** $Eq_1$ allows the result of $x*y$ to be determined solely by $x$ (constant rows), but $Eq_2$ requires the result to vary with $y$.
+
+---
+
+### II. The Recipe for Minimal Counter-Models
+
+If the checklist suggests a falsehood, use these templates to construct a counter-example.
+
+#### 1. The Small-Set Templates (Size 2-4)
+Most counter-examples are found in sets of size $n=2, 3, \text{ or } 4$.
+*   **Size 2 (The "Boolean" Switch):** Use for simple parity or absorption failures. 
+    *   *Example:* $x*y = x$ vs $x*y = y$.
+*   **Size 3 (The "Cycle/Chain"):** Ideal for $Eq_1$ that involves triple nesting.
+    *   *Construction:* Create two elements that behave identically (e.g., 0 and 2) and one "interrupter" (1) that breaks the symmetry. (See *hard_0078*).
+*   **Size 4 (The "Quasigroup/Field"):** Use when $Eq_1$ looks like an algebraic group property (e.g., $x = y*(y*x)$).
+    *   *Construction:* Use the Klein Four-group or a finite field $\mathbb{F}_4$ or $\mathbb{F}_8$ where addition/multiplication can be combined. (See *hard_0005*).
+
+#### 2. The "Constant Row" Strategy
+This is the most successful manual construction method:
+*   Define $0*x = 0$ (a zero row).
+*   Define $1*x = 1$ (another zero row).
+*   Define $2*x$ to be non-constant (e.g., $2*0=0, 2*1=1$).
+*   **Why it works:** Many equations in $Eq_1$ reduce to identities when $x$ hits a constant row ($0$ or $1$), but $Eq_2$ will fail when $x=2$ because the "non-constant" row allows the right-hand side to vary in ways $Eq_1$ doesn't prevent.
+
+#### 3. The Functional Definition (Linear Construction)
+For equations involving $x = (\dots) * (\dots)$, try defining the operation as a linear combination in a finite field:
+*   $x * y = (A \cdot x) + (B \cdot y) \pmod N$
+*   Test small values for $A$ and $B$. If $Eq_1$ is satisfied by specific coefficients $(A, B)$ but $Eq_2$ is not, you have a programmatic counter-example. (See *hard_0005* using $\mathbb{F}_8$).
+
+#### 4. The "Left-Constant Generator" Trick (Advanced)
+If $Eq_1$ has the form $x*y = (Term)*z$:
+*   This implies that the result of $x*y$ must index a **constant row** in the multiplication table.
+*   **Recipe:** Make most rows constant, but leave one row (the "seed" row) non-constant to violate $Eq_2$. (See *hard_0142*).
+
+### Summary Checklist for the Skeptic
+1.  **Try $x*y=x$ (Left-Zero).**
+2.  **Try $x*y=y$ (Right-Zero).**
+3.  **Try $x*y=c$ (Constant).**
+4.  **Look for "Free Variables"** in $Eq_1$ that $Eq_2$ tries to constrain.
+5.  **Build a 3-element table** where Row 0 and Row 1 are constant, and Row 2 is the identity.
+
+--- Batch 4 Analysis ---
+Based on the meta-analysis of the provided true negative (TN) cases, the model successfully refutes equations by treating the problem not as a brute-force search, but as an exercise in finding structural, algebraic, and syntactic asymmetries between Equation 1 (Eq1) and Equation 2 (Eq2). 
+
+Here is the breakdown of the analytical findings, followed by a "Skeptic’s Checklist" and a recipe for counter-model construction.
+
+---
+
+### 1. Counter-Model Construction: Sizes and Archetypes
+The model rarely uses large random searches. Instead, it relies on highly structured, minimal finite magmas.
+*   **Most Common Sizes:** Sizes **2, 3, and 4** are the sweet spots. They are small enough to systematically build but large enough to host non-trivial structures (like distinct row/column ranges). Size $\infty$ (e.g., $\mathbb{Z}$ under addition) is used occasionally when standard properties like Commutativity/Associativity satisfy Eq1 but break Eq2.
+*   **Common Operation Definitional Tricks:**
+    *   **Projection Magmas (Size 2):** Defines $x * y = x$ or $x * y = y$. Used in `hard_0103` to show that $x * y = ((x * z) * w) * y$ holds universally, but Eq2 evaluates to nonsense ($0 = 1$).
+    *   **Left/Right Zeros & Absorbers (Size 3-4):** Designing elements that "eat" other elements (e.g., $0 * x = 0$). In `hard_0071`, forcing the inner terms to evaluate to left zeros makes outer dummy variables irrelevant.
+    *   **Nilpotent Diagonals/Square Types:** If an equation has $x * x$ or $y * y$ (like `hard_0184` or `hard_0029`), the model maps the diagonal to a constant (e.g., $y * y = 0$). This drastically simplifies Eq1 into a manageable rule (e.g., $0 * \text{term} = x$).
+    *   **Column/Row Constants:** Making operations depend only on the left or right operand to control the "image" or "depth" of the operations (`hard_0147`).
+
+### 2. Inconsistency Detection: How the Model Knows Proof is Impossible
+The model identifies unprovability early by analyzing syntactic mismatches rather than attempting logical derivation:
+*   **Variable Frequency / "Phantom Variables":** The model looks for variables that appear on one side of an equation but not the other. In `hard_0184`, Eq1 is $x * y = z * (...)$. Since $z$ is missing from the LHS, the RHS must be completely independent of $z$. This forces the inner term to act as an identity or zero.
+*   **Term Length / "Depth Mismatch":** In `hard_0147`, Eq1 dictates the behavior of terms at depth 3 (e.g., $x * (z * w)$). Eq2 expects that behavior to hold at depth 2 (e.g., $(x * x) * z$). The model recognizes that in a general magma, the set of depth-3 outputs does not necessarily cover all depth-2 outputs. 
+*   **Algebraic Bijectivity:** Equations of the form $x = y * (...x...)$ imply that left-multiplication by $y$ ($L_y$) is a bijection/permutation. If Eq1 implies $L_y$ is a bijection, but Eq2 requires specific commutativity (which Eq1 doesn't enforce), the proof is impossible (`hard_0129`).
+
+---
+
+### 3. The Skeptic’s Checklist (Red Flags for False Equations)
+Before trying to prove that Eq1 $\implies$ Eq2, run this checklist. If any of these are true, stop proving and start building a counter-model.
+
+1.  [ ] **The Phantom Variable Trap:** Does Eq2 contain a variable (e.g., $w$) that does not exist in Eq1? *(Eq1 cannot constrain variables it doesn't mention. See `hard_0057`)*.
+2.  [ ] **The Degeneracy Trap:** Does Eq2 lack a variable on one side that is present on the other (e.g., $x * (y * z) = (w * u) * y$)? *(This requires the operation to be constant/degenerate, which standard Abelian groups will immediately falsify. See `hard_0153`)*.
+3.  [ ] **The Commutativity Assumption:** Does Eq2 reverse the order of variables (e.g., $y * z \to z * y$) while Eq1 is fundamentally non-commutative? *(See `hard_0016`)*.
+4.  [ ] **The Depth / Image Gap:** Does Eq2 rely on a shallow term (like $x * z$) while Eq1 only provides rules for deep nested terms (like $x * (y * (w * z))$)? *(The shallow term might map to values outside the "safe" domain constrained by Eq1)*.
+5.  [ ] **The Bijection Overreach:** Does Eq1 allow you to "cancel" variables (acting as a quasigroup), while Eq2 expects absorbing/zero elements?
+
+---
+
+### 4. Recipe for Constructing Minimal Counter-Models
+If the checklist flags the implication as FALSE, follow this step-by-step recipe to build the Cayley table.
+
+**Step 1: Try the Trivial Magmas First (Size 1-2)**
+*   Test the Left Projection ($x * y = x$).
+*   Test the Right Projection ($x * y = y$).
+*   Test the Constant Magma ($x * y = 0$).
+*   *If Eq1 holds but Eq2 fails, you are done.*
+
+**Step 2: Exploit "Phantom Variables" with Left/Right Zeros (Size 3)**
+*   If Eq1 has a stray variable (e.g., $x * y = z * (inner\_term)$), force the $inner\_term$ to evaluate to a "Left Zero".
+*   Define elements 0 and 1 such that $0 * w = 0$ and $1 * w = 1$.
+*   Map complex inner terms to $\in \{0, 1\}$. This makes the stray $z$ entirely irrelevant, satisfying Eq1 globally, giving you total freedom to break Eq2.
+
+**Step 3: Exploit Squares/Diagonals (Size 3-4)**
+*   If Eq1 contains $y * y$ or $x * x$, map the entire diagonal of your Cayley table to 0 (i.e., $0*0=0, 1*1=0, 2*2=0$).
+*   Rewrite Eq1 substituting 0 for the squares. (e.g., $x = (y*y) * (...) \implies x = 0 * (...)$).
+*   Now you only need to carefully design the "0" row to map back to $x$, leaving the rest of the table completely free to systematically violate Eq2.
+
+**Step 4: Use Standard Standard Groups (Size $\infty$)**
+*   If Eq1 is just a re-arrangement of variables without deleting or adding any (e.g., $x * (y * z) = y * (z * x)$), it is likely satisfied by standard commutative/associative addition.
+*   Test $(\mathbb{Z}, +)$. If Eq2 drops a variable or demands a constant, standard addition will instantly falsify it.
+
+--- Batch 5 Analysis ---
+Based on the analysis of the provided correct refutations (True Negatives), here is the "Skeptic’s Checklist" and the "Recipe for Counter-models."
+
+### I. The Skeptic’s Checklist: Red Flags for Unprovability
+When evaluating if $Eq1 \implies Eq2$, the following structural "Red Flags" strongly suggest the implication is false and that you should switch from searching for a proof to searching for a counter-model.
+
+1.  **Variable "Drift" (New Variables):** If $Eq2$ introduces a variable (e.g., $w$) that is absent in $Eq1$, or uses a variable in a position where $Eq1$ does not constrain it, the implication is likely false. (See: `hard_0107`, `hard_0189`, `hard_0057`).
+2.  **Left-Inverse vs. Right-Inverse Asymmetry:** $Eq1$ defines a property for left-multiplication ($L_x$), but $Eq2$ defines a property for right-multiplication ($R_x$), or vice versa. In general magmas, $L_x$ and $R_x$ are independent unless associativity or commutativity is present. (See: `hard_0181`).
+3.  **Degree of Constraint (Surjectivity vs. Constancy):** $Eq1$ implies an operation is a permutation or surjective (e.g., $x = (\dots) * y$), while $Eq2$ requires a similar term to be constant (e.g., $x * y = z * w$). A surjective map cannot be constant on a set with $|S| > 1$. (See: `hard_0186`).
+4.  **Independence of "Inner Terms":** If $Eq2$ requires an equality between two nested terms that are treated as opaque "units" in $Eq1$. If $Eq1$ sees $x = (\text{Term A}) * x$, it only cares that "Term A" acts as a left identity; it does not care about the internal structure of "Term A." If $Eq2$ requires "Term B" to also be a left identity, and Term B has a different structure, it is likely independent. (See: `hard_0189`).
+5.  **Operation "Filtering":** If $Eq1$ forces all products of a certain form (e.g., $x*x$) into a specific subset/behavior, but $Eq2$ relies on the behavior of elements *outside* that subset. (See: `hard_0184`, `hard_0110`).
+
+---
+
+### II. Recipe for Constructing Minimal Counter-models
+
+If a Red Flag is detected, attempt to construct a counter-model using these strategies, ordered by complexity:
+
+#### 1. The "Simple Function" Model (Size: 2)
+Assume the binary operation depends only on one operand: $x * y = f(x)$ or $x * y = f(y)$.
+*   **Recipe:** Replace the $*$ in both equations with $f$.
+*   **Example:** If $Eq1$ becomes $f(x) = f(f(f(x)))$ and $Eq2$ becomes $f(x) = f(z)$, find a function $f: \{0,1\} \to \{0,1\}$ that is its own third iterate but not constant (e.g., $f(x) = 1-x$).
+
+#### 2. The "Right/Left Zero" Magma (Size: 2)
+*   **Definition:** $x * y = y$ (Right-zero) or $x * y = x$ (Left-zero).
+*   **Utility:** Excellent for testing if an equation relies on "ignoring" certain variables. If $Eq1$ holds under $x * y = y$ but $Eq2$ collapses into an impossible statement like $x = w$, you have your refutation. (See: `hard_0107`).
+
+#### 3. The "Permutation/Group" Magma (Size: 3 or 4)
+*   **Definition:** $x * y = \sigma(x)$ where $\sigma$ is a permutation (like a rotation).
+*   **Utility:** Useful for equations involving nested identities or "inverse-like" properties.
+*   **Construction:** Use a set $\{0, 1, 2\}$. Define $0$ as an identity ($0 * x = x$) and for non-zero elements, apply a cyclic shift $\sigma(1)=2, \sigma(2)=1$. This breaks symmetries between left and right multiplications. (See: `hard_0057`).
+
+#### 4. The "Constant Result" Subset (Size: 3 or 4)
+*   **Definition:** Most operations result in a "sink" element (0), but specific inputs yield a "trigger" element (1).
+*   **Utility:** Used when $Eq1$ forces specific terms to a constant.
+*   **Construction:** Define $x * y = 0$ for almost all pairs. Then, specifically define the few pairs needed to satisfy $Eq1$ (e.g., $0 * z = 0$). Finally, find an input for $Eq2$ that targets a "undefined" or "non-zero" path to create a contradiction. (See: `hard_0110`, `hard_0184`).
+
+#### 5. Modular Arithmetic (Size: $n$)
+*   **Definition:** $x * y = (ax + by + c) \pmod n$.
+*   **Utility:** Quick way to test linear dependencies. If no $a, b, c$ satisfy $Eq1 \implies Eq2$, the theory is likely non-linear and false.
+
+--- Batch 6 Analysis ---
+Based on a meta-analysis of the provided successful refutations (True Negatives) in the Equational Theories dataset, here is a breakdown of how the model efficiently found counter-models, detected inconsistencies, and utilized heuristics. 
+
+---
+
+### 1. Counter-Model Construction Techniques
+The models heavily relied on **small, finite magmas** to disprove implications. The sizes of the counter-models were strictly sizes $N \in \{2, 3, 4\}$, utilizing three distinct archetypes of binary operations:
+
+*   **Size 2 (Trivial/Projection Magmas):** The model frequently tested the **Left-Zero Semigroup** (`x * y = x`) and **Right-Zero Semigroup** (`x * y = y`). 
+    *   *Example (Case 4, 7):* For `x * (y * z) = (x * x) * z`, setting `x * y = x` instantly reduces both sides to `x`, making Eq1 true everywhere. However, Eq2 `x * (y * z) = (y * y) * x` reduces to $x = y$, which is trivially false for any set with $\ge 2$ elements.
+*   **Size 4 (Coordinate-Pair Magmas):** For equations that symmetrically "reconstruct" a variable, the model used Cartesian products of $S = \{0, 1\}$, making the domain $S \times S$.
+    *   *Example (Case 2, 8):* Eq1 is $x = (y * x) * (x * z)$. Notice that $x$ appears as the *right* element of the left group, and the *left* element of the right group. The model brilliantly defined the operation as taking the inner coordinates: `(a, b) * (c, d) = (b, c)`. 
+    *   This makes $(y_1, y_2) * (x_1, x_2) = (y_2, x_1)$ and $(x_1, x_2) * (z_1, z_2) = (x_2, z_1)$. Multiplying these results gives $(x_1, x_2)$, perfectly satisfying Eq1 while scrambling nested equations like Eq2.
+*   **Size 3 (Block-Constant / Absorbing Magmas):** For equations with asymmetric variable dependence, the model constructed size 3 magmas (e.g., $\{0, 1, 2\}$) where a subset of elements acts as constants.
+    *   *Example (Case 6, 10):* The table was built such that the intermediate term $w = x * (y * x)$ always evaluated to `0` or `1`. By forcing `0` and `1` to act as "row constants" (i.e., $0 * z = 0$ and $1 * z = 1$), the model cleanly absorbed the trailing dummy variable $z$ in Eq1, satisfying it globally while failing Eq2.
+
+### 2. Inconsistency Detection (Early Realizations)
+The model didn't just guess tables; it mathematically analyzed why a proof was impossible early in the reasoning phase:
+
+*   **Operator Domain Analysis:** The model translated algebraic equations into Left ($L_x$) and Right ($R_x$) translation operators. In Case 1, it recognized that Eq1 only guaranteed constancy on the *image* of $L_x$, whereas Eq2 demanded constancy over the *entire domain*. 
+*   **Dummy Variable Elimination:** If Eq1 introduces variables that do not affect the outcome (e.g., $z, w$ in `x * y = ((x * z) * w) * y`), the model recognized that Eq1 is just asserting "$L_{\text{something}}$ acts exactly like $x$". If Eq2 tries to swap those dummy variables into dominant roles, the implication is mathematically unfounded.
+*   **Dimensionality / Parity Fails:** By mapping variables to coordinate pairs, the model reduced complex symbolic equations into simple coordinate equalities. If an equation reduced to requiring $(x_2, y_1) = (z_1, z_1)$ (as in Case 8), the model instantly knew it was globally inconsistent because independent variables cannot be universally equal to a single paired variable.
+
+### 3. Search Heuristics ("Red Flags")
+The model switched from "proving" to "refuting" when it spotted specific structural mismatches between Eq1 and Eq2:
+
+*   **The "Global Constant" Flag:** If Eq2 evaluates to a term composed entirely of a single variable (e.g., Eq2 is `x * y = (z * z) * z`), while Eq1 preserves distinct variables, Eq2 is demanding the magma be a trivial size-1 set. 
+*   **The "Nesting Depth" Flag:** If Eq1 is shallow (depth 1 or 2) but Eq2 is deeply nested (e.g., `x = x * (y * (x * (y * z)))`), it triggers a search. Shallow equations usually just shift elements around; deep equations scramble them. A coordinate-pair magma will almost always fail the deep equation.
+*   **The "Position Swap" Flag:** If Eq1 has variables strictly segregated (e.g., $x$ is always the left-most variable in all sub-terms), but Eq2 mixes them (e.g., $z * x$), it implies a commutativity requirement that Eq1 doesn't provide.
+
+---
+
+### 🛡️ The Skeptic’s Checklist 
+*Use this checklist to quickly flag if an implication `Eq1 => Eq2` is likely FALSE.*
+
+1. [ ] **Variable Asymmetry:** Does Eq2 contain a variable that isn't in Eq1? Or does Eq2 drop a variable that Eq1 relies on?
+2. [ ] **Trivialization Check:** Does Eq2 force two independent variables to be equal (e.g., reduces to $x = y$ or $x * y = z$)? 
+3. [ ] **Nesting Explosion:** Does Eq2 require 3+ layers of nesting while Eq1 only requires 1 or 2? 
+4. [ ] **Commutativity Squeeze:** Does Eq2 reverse the left/right orientation of variables (e.g., $x * y$ becomes $y * x$) while Eq1 maintains strict ordering?
+
+---
+
+### 🧪 Recipe for Constructing Minimal Counter-Models
+If you suspect the implication is FALSE, run through this hierarchy of magma constructions. Over 90% of counterexamples can be found using these three steps:
+
+**Step 1: The Trivial Projections (Size 2)**
+*   Test the Left-Zero magma: `x * y = x`
+*   Test the Right-Zero magma: `x * y = y`
+*   *Why:* This takes 10 seconds. If Eq1 survives and Eq2 fails, you are done.
+
+**Step 2: The Coordinate Extractors (Size 4)**
+*   If the equation looks like a "recovery" identity (e.g., $x = \text{expression}$), treat elements as ordered pairs from $\{0, 1\}$.
+*   Look at the position of the target variable $x$ in the RHS of Eq1. 
+*   Define the operation `(a,b) * (c,d)` to extract exactly the coordinates needed to rebuild the left side. 
+    *   *Example:* If $x * y = (x * z) * (y * w)$, note that $x$ is on the left, and $y$ is on the left of the right-term. Define `(a,b) * (c,d) = (a, c)`. 
+
+**Step 3: The Absorbing Block (Size 3)**
+*   If the equation has dummy variables trailing at the end (e.g., `... * z`), build a $3 \times 3$ table on $\{0, 1, 2\}$.
+*   Make rows `0` and `1` completely uniform (e.g., row `0` is all `0`s, row `1` is all `1`s). This makes them "absorbing" for right-multiplication.
+*   Tweak row `2` so that the inner evaluation of Eq1 is forced to land on either `0` or `1`. This cleanly kills the trailing dummy variable.
+*   Verify that Eq2 fails when passing the element `2` into the modified slots.

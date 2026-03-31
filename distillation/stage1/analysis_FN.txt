@@ -1,0 +1,1432 @@
+
+--- Batch 1 Analysis ---
+Based on the provided dataset of failed proof searches, the models are not failing because they get lost in endless substitution loops; rather, they are failing because they **refuse to perform equational substitutions at all**. When faced with a challenging derivation, the model consistently abandons syntactic manipulation (algebraic proof) and hallucinates a meta-mathematical, model-theoretic, or semantic shortcut.
+
+Here is the meta-analysis of the failures based on your requirements:
+
+### 1. Search Depth
+*   **Premature Abandonment (Depth 0-1):** The model typically stops exploring purely algebraic substitutions after 0 or 1 step. Instead of building a chain of derived equations, it immediately pivots to declaring the problem solved via a hallucinated shortcut.
+*   **Reliance on Meta-Reasoning:** It frequently replaces search depth with unverifiable claims like "exhaustive checking of finite magmas" (e.g., size 2), "attempts to construct counterexamples fail," or by citing non-existent "established results in universal algebra."
+
+### 2. Missing Links
+*   **Bypassing Syntactic Bridges:** The model completely overlooks "expand-and-collapse" transformations. In equational logic, proving $A=B$ often requires substituting a large term into a variable to intentionally inflate the equation, creating a complex nested pattern that finally triggers another axiom to collapse it. 
+*   **Failure to Lemmatize:** The model fails to algebraically establish intermediate identities. Instead of proving properties like idempotence ($x*x=x$) or commutativity through step-by-step substitution, it simply asserts that Equation 1 logically *forces* these properties to exist globally.
+
+### 3. Local Optima
+*   **The "Semantic/Classification" Trap:** The models get stuck in a "semantic optima" rather than a syntactic loop. They look at the structure of Equation 1 and attempt to classify the magma globally (e.g., "This must be a left-zero semigroup," "This forces the magma to be trivial," "This characterizes an Abelian Group of exponent 2"). 
+*   **Confirmation Bias:** Once the model hypothesizes a global structure (like $a*b = f(b)$ for an involution $f$), it spends its remaining token budget verbally justifying this hallucinated structure using plain-text logic instead of trying to manipulate the actual mathematical symbols.
+
+### 4. Complexity Bias
+*   **Fear of Term Explosion:** The source equations (e.g., `x = ((y * x) * x) * (x * z)`) are deeply nested. The model exhibits a strong bias against substituting complex terms into other complex terms because it anticipates an unmanageably large expression tree.
+*   **Shortcutting to Triviality:** To avoid dealing with exploding term complexity, the model takes the easy way out by claiming the identity is "trivializing" (forces $x=y$, so all magmas are singletons) or uses hand-wavy cop-outs like "a straightforward induction on the complexity of terms shows..."
+
+---
+
+### **Persistence Strategy (Prompting Recommendations)**
+
+To force the model to explore valid, non-obvious transformation paths and prevent it from "giving up," your prompt should implement constraints that ban semantic reasoning and enforce deep syntactic exploration:
+
+**1. Ban Meta-Mathematical Cop-Outs:**
+*   *Prompt Addition:* "Do not use model-theoretic arguments, finite magma checking, or claim that 'a known theorem' solves the problem. You must not use phrases like 'trivializing identity' or 'induction on complexity.' Every step must be a pure syntactic algebraic substitution."
+
+**2. Enforce Strict Substitution Formatting:**
+*   *Prompt Addition:* "You must explicitly state every substitution before applying it. Format your steps strictly as: `Substitute x -> [term1], y -> [term2] into [Equation/Lemma].` This ensures you rely on symbol manipulation rather than verbal reasoning."
+
+**3. Mandate Intermediate Lemmatization (Stepping Stones):**
+*   *Prompt Addition:* "Do not try to jump directly from Equation 1 to Equation 2. Spend the first 4-5 steps of your search discovering and proving simpler intermediate lemmas (e.g., finding expressions that equal $x$, checking what happens when $y=x$, or finding a right/left identity). Build a toolkit of smaller identities first."
+
+**4. Reframe "Term Explosion" as a Positive Heuristic:**
+*   *Prompt Addition:* "Do not be afraid of creating massive, highly nested intermediate terms. In equational logic, it is often necessary to expand a term drastically (substituting a large expression into a variable) to align the parentheses so that Equation 1 can be applied to collapse it. If an equation gets longer, you are not necessarily going in the wrong direction."
+
+**5. Force Divergent Exploration:**
+*   *Prompt Addition:* "If a sequence of substitutions does not lead to a simplification after 3 steps, you must backtrack. Begin a new branch of exploration by choosing a completely different, non-obvious set of variable substitutions (e.g., if you tried $y=x$, try $y=(x*z)$ next)."
+
+--- Batch 2 Analysis ---
+Based on the meta-analysis of the provided cases where the model correctly identified the truth value (TRUE) but failed to provide a valid, rigorous proof or prematurely "gave up" on the logical derivation (False Negative in terms of proof quality), we identify the following patterns:
+
+### 1. Search Depth and Local Optima
+Models often stop after **2-3 substitution steps**. They typically reach a "simplified" form (e.g., $x*x = e$ or $x*y = k_x$) and assume the structural conclusion is self-evident. 
+*   **Looping:** In `hard_0058` and `hard_0162`, the model correctly identified a helper function $k(z)$ but entered a loop of re-substituting $k(k(z)) = k(z)$ without applying it to the specific variables in Equation 2.
+*   **Premature Convergence:** In `hard_0141`, the model jumped to the conclusion that the operation "only depends on its right operand" without formally proving the intermediate step that $((y*z)*y)$ is independent of $z$.
+
+### 2. Missing Links (Unobvious Substitutions)
+The most common missing link is the **"Universal Constant" or "Identity Construction"** step.
+*   **The "Fixed Element" trick:** Models struggle to move from "exists a $z$ such that $P(z)$" to "for all $z$, $P(z)$ holds." For example, in `hard_0085`, the model failed to rigorously prove that the left identity $e_{y,z}$ must be independent of $y$ and $z$ through a substitution like $x \gets e_{a,b}$.
+*   **Variable Shadowing:** Models often fail to substitute a complex term (like $x*z$) back into the original axiom as a single variable $u$, which is often necessary to bridge the gap between Equation 1 and Equation 2.
+
+### 3. Complexity Bias
+Models show a clear bias toward **"Trivialization"**. If a problem looks difficult (e.g., `hard_0198`), the model defaults to the "Singleton Magma" argument—claiming the only possible model is a one-element set—rather than finding the algebraic path for non-trivial magmas. This is a form of "giving up" by over-constraining the problem.
+
+---
+
+### Persistence Strategy: "The Transformation Pivot"
+
+To encourage models to find valid proofs in these "Hard" cases, the prompt should be updated with the following instructions to ensure persistence:
+
+1.  **Mandatory Variable Substitution Table:**
+    *   *Instruction:* "Before concluding a statement is true, you must perform at least three 'deep' substitutions. Specifically, replace $x$ in Equation 1 with the entire Left-Hand Side (LHS) or Right-Hand Side (RHS) of Equation 1. Observe if this creates a fixed point or a constant."
+
+2.  **Anti-Trivialization Check:**
+    *   *Instruction:* "Do not assume the magma is a singleton unless you can prove $x=y$ for any two arbitrary elements. If you suspect a constant element exists (e.g., $x*x=c$), define it as $c$ and attempt to rewrite Equation 2 using only $x, y,$ and $c$."
+
+3.  **The "Bridge" Requirement:**
+    *   *Instruction:* "If the target equation (Eq 2) contains a variable $w$ not present in a simplified form of Eq 1, you must find a substitution in Eq 1 that introduces $w$ as a 'dummy' variable to prove independence. You are not finished until every variable in Eq 2 has been accounted for in your derivation."
+
+4.  **Exhaustive Path Branching:**
+    *   *Instruction:* "If a transformation leads to a loop (e.g., $x = x$), backtrack to the last non-trivial step and substitute a different variable (e.g., replace $y$ with $y*y$ or $y*x$ instead of $x$). Explore at least two distinct transformation branches before concluding."
+
+--- Batch 3 Analysis ---
+Based on the meta-analysis of the provided False Negative (FN) cases, here is the breakdown of why the models are failing to find valid proofs, followed by a **Persistence Strategy** designed to improve prompt engineering.
+
+### 1. Search Depth & Early Stopping
+* **Observation:** The majority of the failures are due to premature termination. Cases like `hard_0199`, `hard_0078`, `hard_0025`, and `hard_0151` physically cut off mid-sentence during the `REASONING` phase. Cases `hard_0195` and `hard_0033` return completely empty strings.
+* **Diagnosis:** The model's internal confidence drops when the algebraic search space branches too widely. Instead of exploring further, it hits a perplexity threshold, resulting in generation truncation, hallucination of an empty proof (Case 6), or defaulting to a "COUNTEREXAMPLE" block (Case 3). It rarely surpasses 5-8 actual algebraic manipulation steps before giving up.
+
+### 2. Missing Links (Overlooked Substitutions)
+* **Observation:** The model consistently overlooks "variable unification"—substituting variables with each other (e.g., $x=y$ or $z=x$) to reduce the complexity of the axioms.
+* **Diagnosis:** In Case 6 (`hard_0009`), the model actually finds a massive missing link by setting $z=x$, reducing Eq1 to $((x*x)*(y*x))*y = x$. The target Eq2 is $((x*(y*x))*x)*y = x$. The model is one or two inner substitutions away from proving that $(x*x)*(y*x) = (x*(y*x))*x$, but it fails to apply Eq1 *inwardly* to the sub-terms, missing the final link.
+
+### 3. Local Optima & Variable Bloat
+* **Observation:** When the model *does* attempt a deep proof, it gets trapped in loops of endless expansion. 
+* **Diagnosis:** Case 3 (`hard_0081`) is a textbook example. The model substitutes variables to define a new function $c(x) = (z * x) * x$. It then introduces $s = y * y$, then $w$, then $v$, then $k$, then $s'$. It falls into a local optimum by repeatedly applying Eq1 right-to-left (expansion) which continuously increases the length of the terms without any left-to-right (reduction) steps to collapse them. It realizes it is stuck ("*This path is complex. Simpler:*") but lacks the mechanism to cleanly backtrack, ultimately breaking down.
+
+### 4. Complexity Bias & Semantic Hallucinations
+* **Observation:** The model looks at visually disparate equations and assumes the syntactic proof is too long or complex. To bypass the algebra, it hallucinates "Semantic" (Model Theory) proofs.
+* **Diagnosis:** In Case 6, instead of finishing the algebra, the model writes an essay about "boolean affine algebras" and "constant-row models." In Case 1 (`hard_0126`), it hallucinates a complex recursive sequence ($w_n$) to prove idempotence instead of relying on standard equational substitutions. It falsely believes that sounding mathematically sophisticated is an acceptable substitute for line-by-line equational derivation.
+
+---
+
+### 💡 The "Persistence Strategy" (Prompting Guidelines)
+
+To fix these issues, your prompt must force the model out of semantic hallucinations and guide it through a structured, strictly algebraic search path. Update your system prompt with the following directives:
+
+**1. Ban Semantic/Structural "Bluffing"**
+> *"Do not justify equivalence by referencing magma classes, affine models, left/right zero magmas, or finite model properties. Your proof must be strictly syntactic and algebraic. A valid proof consists ONLY of applying substitutions to Eq1 to reach Eq2."*
+
+**2. Enforce "Variable Unification" (The Missing Links)**
+> *"Before attempting complex substitutions, you MUST systematically test self-unifications to generate lemmas. Test the following configurations first:*
+> *- Set all variables equal: $x = y = z = w$*
+> *- Set two variables equal: $x = y$, $y = z$, or $x = z$*
+> *- Substitute simple products: $x = y * y$ or $z = x * y$* 
+> *Write down the resulting simplified lemmas before combining them."*
+
+**3. Implement a "Breath-over-Depth" Checkpoint System (Beating Local Optima)**
+> *"Do not get stuck infinitely expanding equations. If a term exceeds 15 symbols or you have introduced more than 2 intermediate variables (like $a$, $b$, $s$, $k$), you have gone down a rabbit hole. STOP. Write '[BACKTRACK]', discard that path, and return to your pool of simplified lemmas. Alternate strictly between EXPANSION (making terms larger) and REDUCTION (collapsing terms)."*
+
+**4. Force Bidirectional Search (Bridging the Gap)**
+> *"Do not just work forward from Eq1. You must also work BACKWARDS from Eq2. Choose the most complex sub-term inside Eq2 and attempt to find a substitution from Eq1 that collapses it. Write out your scratchpad in two sections: 'Forward from Eq1' and 'Backward from Eq2', then look for the intersection."* 
+
+**5. Step-Counter to Prevent Early Truncation**
+> *"You must perform at least 10 distinct, line-by-line algebraic manipulation steps before concluding a proof cannot be found. Number your steps explicitly (Step 1, Step 2, ..., Step 10) to maintain context and track your search depth."*
+
+--- Batch 4 Analysis ---
+Based on a meta-analysis of the provided dataset, here is a breakdown of why the models fail to find valid proofs and a **Persistence Strategy** to correct these failure modes.
+
+### 1. Search Depth: Premature Abandonment of Syntax
+**Observation:** The models exhibit an extremely shallow algebraic search depth, typically giving up after only **2 to 5 equational substitutions**. 
+**Analysis:** In cases like `hard_0080` and `hard_0130`, the model performs a few basic substitutions (e.g., setting $z=x$ or $z=y*x$). When these initial steps do not immediately yield a term resembling the target equation, the model completely aborts the algebraic proof search. Instead of digging deeper into syntactic manipulations, it fills the remaining response with hallucinated semantic justifications (e.g., "checking small magmas up to order 3"). 
+
+### 2. Missing Links: Overlooking Complex Substitutions
+**Observation:** The models consistently overlook the strategy of substituting **complex, nested expressions** into the axiom. 
+**Analysis:** Equational proofs often require taking an axiom like $x = f(x,y)$ and substituting massive terms (e.g., $z = (x*y)*z$) to force a specific cancellation later. The models almost exclusively try to substitute simple, atomic variables ($x, y, z$) or immediate subterms. Furthermore, the models miss the need to build intermediate helper identities (lemmas). For example, in `hard_0170`, instead of finding the algebraic link to prove a property, the model simply hallucinates a shortcut, falsely claiming that the term $c(z) = (y*z)*y$ is "independent of $y$."
+
+### 3. Local Optima: The Semantic Analysis Trap
+**Observation:** The models get stuck in a "semantic analysis loop" rather than progressing through syntactic term rewriting.
+**Analysis:** Instead of expanding and shrinking terms, the models pivot to defining sets, mappings, or functions. In `hard_0188` it defines $L_x$ and $R_x$; in `hard_0016` it invents a "left absorber"; in `hard_0033` it tries to prove everything is a "left identity." The model gets trapped here because writing descriptive paragraphs about the magma's macroscopic properties *feels* like logical progress, but it is a dead end. Equational theories strictly require a contiguous chain of symbol manipulation ($A = B = C = D$), which this semantic trap entirely bypasses.
+
+### 4. Complexity Bias: Assuming Global Structural Collapse
+**Observation:** The model is heavily intimidated by the structural differences between the source and target equations, seeking massive logical shortcuts to avoid dealing with them.
+**Analysis:** When the target equation looks too complex or structurally detached from the axiom, the model suffers from complexity bias. It prematurely concludes that the only way the implication could be true is if the axiom forces the entire magma to collapse into a trivial structure. In `hard_0188` and `hard_0042`, the model claims the magma "must be trivial" (1 or 0 elements). In `hard_0078` and `hard_0130`, it assumes the magma collapses into a standard "Left/Right Zero semigroup." It uses this assumed structural collapse to hand-wave away the target equation without ever doing the math.
+
+---
+
+### 🌟 The Persistence Strategy (Prompt Directives)
+To encourage the model to push through these barriers and explore non-obvious transformation paths, the prompt must constrain its behavior and redefine what "progress" looks like. Include the following directives in your system prompt:
+
+1. **Strict Syntactic Chains Only (Ban Semantic Hand-waving):**
+   * *"Your proof must consist **exclusively** of a chain of algebraic substitutions ($Term_1 = Term_2 = Term_3$). Do not use set theory, define functions/mappings, or analyze finite magma operation tables. Proofs by descriptive English or structural claims (e.g., 'this is a left-zero semigroup' or 'the magma is trivial') are strictly prohibited."*
+
+2. **Mandate Complex Substitutions:**
+   * *"Do not limit yourself to substituting simple variables like $x$ or $y$. To find the missing links, you must substitute entire complex expressions (e.g., $z = (x * y) * x$) into the axioms to create structural overlaps."*
+
+3. **Embrace Term Expansion (Overcome Complexity Bias):**
+   * *"Do not be afraid if the equations grow massively in size. In equational reasoning, terms often need to become highly nested and complex before they can collapse into the target equation. Expand aggressively."*
+
+4. **Construct Intermediate Lemmas:**
+   * *"If the target equation seems too distant, do not give up and do not assume the magma is trivial. Instead, spend 5-10 steps deriving intermediate identities (Lemmas). Find any sub-patterns you can prove, and then see how those new tools can be applied to the target."*
+
+5. **Bidirectional Search Strategy:**
+   * *"If you get stuck moving forward from Equation 1, work backward. Apply the axioms to Equation 2 to un-simplify it, and see if you can make the forward and backward paths meet in the middle."*
+
+--- Batch 5 Analysis ---
+Based on the analysis of the provided cases where models incorrectly concluded that a proof was impossible or that the theory was trivial (False Negatives), the following meta-analysis identifies the core failure modes.
+
+### 1. Search Depth and Termination
+In almost all failed cases, the model stopped exploring actual algebraic transformations after **0 to 2 steps**. Instead of applying equational logic, the models shifted to **metalogic or model-theoretic shortcuts**:
+*   **The "Singleton" Trap:** In problems like `hard_0047`, `hard_0188`, and `hard_0135`, models prematurely concluded that Equation 1 is only satisfiable by a 1-element magma.
+*   **Exhaustive Enumeration Fallacy:** Models often claimed to have "checked all 16 possible 2-element magmas," using this as a proxy for a proof, rather than finding the derivation.
+
+### 2. Missing Links: The "Unobvious" Transformations
+The models consistently overlooked several key types of substitutions:
+*   **Variable Shadowing:** In `hard_0188`, the model failed to recognize that since $x = ((y * x) * x) * (x * z)$ holds for *all* $z$, the term $(x * z)$ must behave as a right-neutral or constant element relative to the preceding term. They failed to substitute $z$ with a complex term like $(x * y)$ to link back to the goal.
+*   **Idempotency as a Bridge:** In `hard_0022` and `hard_0073`, the models correctly intuited that $x*x=x$ might be involved but failed to rigorously derive it using "Replacement of Equals" (e.g., replacing $x$ in the RHS with the entire LHS expression).
+
+### 3. Local Optima and Complexity Bias
+*   **The "Look-at-the-Goal" Bias:** In `hard_0024`, the model saw Equation 2 was complex and Equation 1 was "known" to it. It stopped searching for a derivation and relied on "hallucinated" knowledge (claiming Eq 1 is the "Right Zero Semigroup" axiom, which it is not).
+*   **Structural Intimidation:** If Equation 2 contained variables not present in Equation 1 (like $w$ or $z$), the models immediately assumed the theory must collapse to a singleton to "zero out" the extra variables, rather than looking for a path where those variables cancel out through substitution.
+
+---
+
+### Persistence Strategy: Guidelines for the Prompt
+
+To encourage models to find non-obvious proofs and avoid premature "giving up," the following instructions should be integrated into the prompt:
+
+1.  **Mandatory Derivation Steps:** 
+    *   "Do not conclude a theory is trivial (singleton) until you have attempted at least 10 unique substitutions. Specifically, try substituting variables with the entire expression of Equation 1 (e.g., replace $x$ with $LHS$)."
+
+2.  **Anti-Singleton Heuristic:** 
+    *   "If you suspect the theory only allows for a 1-element magma, you **must** provide a formal derivation of $x = y$ using only the provided axioms before declaring the implication TRUE on those grounds."
+
+3.  **Variable Isolation Technique:**
+    *   "If Equation 2 contains variables not in Equation 1, look for 'absorbing elements' or 'constant transformations.' Try to derive a form $x * f(y) = x$ or $f(y) * x = x$. Use these to neutralize the 'extra' variables in the target equation."
+
+4.  **Exploration Diversity:** 
+    *   "Avoid 'looping' (repeatedly expanding and shrinking the same term). If a path doesn't simplify after 3 steps, revert to the original axiom and try a different variable substitution (e.g., if you tried $y=x$, try $x=y*y$ next)."
+
+5.  **Verification of 'Known' Facts:**
+    *   "Do not rely on 'known' names for axioms (e.g., 'Right Zero Semigroup'). Verify every property via explicit substitution steps within this specific session."
+
+--- Batch 6 Analysis ---
+Based on the analysis of the provided cases where models failed to find a valid proof (False Negatives), here is the meta-analysis and the resulting Persistence Strategy.
+
+### 1. Search Depth Analysis
+Models typically stop exploring after **2 to 3 levels of substitution**. In cases like `hard_0125` and `hard_0147`, the model successfully identified an initial property (e.g., surjectivity of left translation or properties of a set $K_x$) but failed to carry that property through a sufficiently long chain of re-substitutions. The "giving up" point usually occurs when the model cannot find a direct unification between the current term and the target equation within a single step.
+
+### 2. Missing Links (Unobvious Steps)
+The models consistently overlooked:
+*   **Variable Swapping/Symmetry:** Failing to substitute $x$ for $y$ or $c_x$ for $x$ in derived identities to find fixed points (e.g., deriving idempotency $c_{c_x} = c_x$ in `hard_0147`).
+*   **Functional Interpretation:** In `hard_0125`, the model correctly identified $L_y$ as surjective but failed to use the inverse operator $L_y^{-1}$ to systematically isolate variables.
+*   **Universal Quantifier Exploitation:** Models often fail to realize that if $x = f(y, z)$ for all $y, z$, then $x$ must be a constant or $f$ must collapse, leading to a trivial magma ($x=y$).
+
+### 3. Local Optima and Complexity Bias
+*   **Triviality Trap:** Models frequently get stuck in a "Triviality Optima." If a few size-2 magma checks fail, the model prematurely concludes the magma must be a singleton ($|M|=1$) and stops searching for a general algebraic proof (e.g., `hard_0082`, `hard_0188`).
+*   **Structure Bias:** If Equation 2 looks significantly "shorter" or "simpler" than Equation 1 (e.g., `hard_0188`), models assume Equation 1 must be so restrictive that it collapses the whole system, rather than exploring intermediate identities.
+*   **Expansion Loops:** In `hard_0147`, the model repeatedly redefined sets $P$ and $K_x$, effectively renaming the problem without simplifying the terms, leading to a circular reasoning loop.
+
+---
+
+### Persistence Strategy: "The Divergent Substitution Protocol"
+
+To encourage models to find these hidden proofs, the prompt should be structured to enforce the following behaviors:
+
+**1. Mandatory "Variable Shadowing":**
+*   *Instruction:* "For every derived identity $x = f(x, y, z)$, explicitly perform and document the results of substituting $x \to y$, $y \to x$, and $x \to (x * x)$. Often, the interaction between a term and its squared form reveals hidden idempotency."
+
+**2. Exhaustive Operator Analysis:**
+*   *Instruction:* "Determine if the operation is surjective or injective based on Equation 1. If $L_x$ (left multiplication) is surjective, treat $L_x^{-1}$ as a valid symbolic transformation. Rewrite Equation 2 using these inverse operators to see if it reduces to Equation 1."
+
+**3. Anti-Triviality Check:**
+*   *Instruction:* "Do not conclude a magma is trivial ($x=y$) solely based on the absence of small finite models. You must provide a symbolic derivation showing $x=y$ or continue the proof search for the general case. If you suspect the magma is trivial, attempt to derive $x * y = y * x$ first."
+
+**4. Bridge Identity Generation:**
+*   *Instruction:* "If the target (Eq 2) is simpler than the source (Eq 1), look for a 'Bridge Identity' of intermediate complexity. Try to derive $x * x = x$ or $x * (y * x) = x$ as stepping stones. Do not attempt to jump from a 10-variable string to a 3-variable string in one step."
+
+**5. Constraint Relaxation:**
+*   *Instruction:* "If stuck, temporarily assume a known property (like associativity or commutativity) to see if a proof exists under those conditions. If it does, work backward to see if Eq 1 provides a 'weak' version of that property (e.g., power-associativity)."
+
+--- Batch 7 Analysis ---
+Based on the provided dataset of failed proof searches, here is a meta-analysis of why the models fail, followed by an actionable "Persistence Strategy" for prompt engineering.
+
+### 1. Search Depth
+The models exhibit an **abysmally shallow syntactic search depth (typically 0 to 2 steps).** 
+When faced with complex equational derivations, the model almost immediately abandons step-by-step symbolic manipulation. Instead of exploring deep substitution chains, it stops searching and attempts to "talk its way out" of the problem. If it attempts to start a proof (as seen in `hard_0033` and `hard_0005`), it quickly exhausts its context or reasoning capacity and cuts off mid-sentence. When it doesn't cut off, it simply hallucinates the final steps with phrases like *"algebraic derivation confirms"* (`hard_0178`) or *"this collapses to x*y"* (`hard_0133`).
+
+### 2. Missing Links
+The models consistently overlook two critical mechanisms required for equational proofs:
+*   **Complex / Asymmetric Substitutions:** The models only attempt trivial substitutions (e.g., $x = y$). They completely miss the "unobvious," machine-like substitutions required in automated theorem proving, such as replacing a variable with a large composite term (e.g., substituting $x \to (y * z) * y$) to force unification and cancellation.
+*   **Intermediate Lemmas:** In cases where Eq 1 implies a global property like idempotence ($x*x=x$) or a trivial magma ($x=y$), the model fails to explicitly set these as sub-goals. It realizes these properties are true but skips the mathematical linkage required to prove them.
+
+### 3. Local Optima
+The models get trapped in a **Semantic / Meta-Reasoning Loop**. 
+Because LLMs are trained on human mathematical literature, they are biased toward writing high-level proof sketches. When the model looks at an equation, it identifies structural properties (e.g., *"Steiner Quasigroups"*, *"left invertibility"*, *"bijections"*). 
+*   In `hard_0001`, the model gets stuck analyzing the inverse of left translations ($L_y^{-2}$).
+*   In `hard_0187`, it gets stuck reasoning about "pairwise-disjoint non-empty subsets."
+This semantic reasoning feels like progress to the LLM, acting as a "local optimum," but it is an absolute dead end. The model lacks the ability to translate these semantic truths (like "surjectivity") back into the pure syntactic sequence of substitutions required to solve the task.
+
+### 4. Complexity Bias
+There is a massive **Complexity Shock**. When Equation 1 is highly complex and Equation 2 is drastically simpler (or implies that all elements in the magma are identical), the model perceives the syntactic distance as insurmountable. 
+Instead of trying to incrementally bridge the gap, it prematurely gives up and relies on global assertions. For example, in `hard_0014` and `hard_0136`, the model just declares that the mathematical structure "unconditionally collapses" into a singleton (trivial magma) because "universal quantifiers force all elements to be identical." It assumes that because the constraint is so heavy, a formal proof is unnecessary.
+
+---
+
+### 💡 The "Persistence Strategy" (Prompting Directives)
+
+To force the model to explore non-obvious transformation paths and prevent it from "giving up," the prompt must restrict it from acting like a human mathematician and force it to act like an Automated Theorem Prover (ATP). 
+
+Incorporate the following instructions into your system prompt:
+
+1.  **Ban Semantic Handwaving:**
+    *   *Directive:* "Do NOT use semantic or structural arguments. Banned concepts include: 'surjective', 'injective', 'bijective', 'quasigroups', 'trivial magmas', 'left translations', and 'finite model analysis'. You must operate STRICTLY in the domain of syntactic symbol manipulation."
+2.  **Force ATP-Style Formatting (No Skipped Steps):**
+    *   *Directive:* "Do not write proof sketches like a human mathematician. Do not use phrases like 'it is easily derived' or 'algebraic derivation confirms.' Every single line of your proof must be an equation, accompanied strictly by the exact substitution map used (e.g., `[Let x = (y * z), y = w]`)."
+3.  **Mandate Complex 'Self-Substitutions':**
+    *   *Directive:* "To find the proof, you must explore 'unobvious' complex substitutions. Do not just test $x=y$. Try substituting a variable with an entire sub-expression from the axioms (e.g., replace $x$ with $((y * x) * z)$). Look for substitutions that force the outer layers of an expression to match the inner layers of the axiom, allowing them to collapse."
+4.  **Enforce Intermediate Lemma Generation (Stepping Stones):**
+    *   *Directive:* "If the target equation is drastically different from the source axiom, do not attempt to reach it in one jump. First, establish intermediate lemmas. Spend your first steps attempting to prove simpler properties like Idempotence ($x*x = x$), Commutativity ($x*y = y*x$), or Absorption. Use these lemmas to build a bridge to the final target."
+5.  **Anti-Looping Instruction:**
+    *   *Directive:* "If you find yourself expanding an equation and it grows longer than 4-5 terms without a clear way to cancel or reduce it, STOP. Backtrack and try a different, asymmetrical substitution. Focus on making terms collapse, not just expanding them infinitely."
+
+--- Batch 8 Analysis ---
+Based on the meta-analysis of the provided dataset, here is the breakdown of why the models fail to find valid proofs and instead generate "False Negative" (hallucinated or invalid) proofs. 
+
+### **Meta-Analysis of Failed Proof Searches**
+
+**1. Search Depth (Premature Abandonment)**
+The model effectively stops exploring equational substitutions after **1 to 2 steps**. If a direct substitution (like setting $x=y$ or $y=z$) does not immediately yield a recognizable identity or the target equation, the model aborts the term-rewriting path entirely. Instead of pushing deeper into the search tree (which might require 5-10 mechanical steps of expansion and contraction), it opts to write a high-level "meta-proof."
+
+**2. Missing Links (Overlooking Complex Substitutions)**
+The model consistently overlooks **expansive substitutions**—the act of replacing a single variable with a complex, nested term (e.g., substituting $y = (z * x) * x$), or applying the axiom to a deep subterm of the current expression. It misses the unintuitive "bridge" lemmas because it only looks for substitutions that *shrink* the equation, completely missing the link that equations must sometimes be "blown up" with large terms to expose cancellable structures.
+
+**3. Local Optima (The "Semantic Shortcut" Trap)**
+Rather than getting stuck in a literal loop of expanding/shrinking terms, the model gets trapped in a **semantic local optimum**. It attempts to map the equation onto known high-level algebraic structures. For example, it hallucinates that the magma must be "trivial" ($|M|=1$), a "left-zero band," a "quasigroup," or relies on concepts like "surjectivity," "bijectivity," and "translation maps." By committing to these pseudo-structural classifications, it abandons syntax manipulation and gets stuck trying to forcefully bend these advanced concepts to fit the target equation.
+
+**4. Complexity Bias (Fear of Term Bloat)**
+The model exhibits a severe **Complexity Bias**. As equational terms grow to 3, 4, or 5 levels of nesting, the model assumes it has taken a wrong turn because the expression looks "too different" and messy compared to the concise target equation. To bypass the cognitive load of tracking deeply nested parentheses and massive symbol bloat, it prematurely gives up on the algebra and invents logic (e.g., "The structural constraints... systematically reduce to equivalent evaluations," or "Extensive search... yields none").
+
+---
+
+### **Persistence Strategy (Prompting Directives)**
+
+To force the model to explore alternative, non-obvious transformation paths and prevent it from "giving up," your prompt should implement the following rules:
+
+**1. Ban Semantic and Structural "Shortcuts"**
+*   **Directive:** "You must prove the implication using **strictly equational logic** (term rewriting). Do not use set-theoretic arguments, cardinality claims (e.g., $|M|=1$), mapping properties (surjectivity/injectivity/bijections), or abstract algebraic classifications (e.g., 'quasigroups', 'retractions')."
+
+**2. Embrace "Term Bloat" (Overcome Complexity Bias)**
+*   **Directive:** "Do not be afraid of generating extremely long, deeply nested intermediate terms. In equational logic, terms must often become highly complex and bloated before they can collapse into the target expression. Keep expanding."
+
+**3. Force Systematic "Expansive" Substitutions (Bridge Missing Links)**
+*   **Directive:** "If you are stuck, perform an expansive substitution. Substitute complex chunks of the target equation into the variables of the source axiom. Specifically, try setting variables to combinations of themselves (e.g., $y = x * x$, or $z = y * x$) to intentionally create identical subtrees that can be collapsed."
+
+**4. Mandate Step-by-Step Chain Formatting (Increase Search Depth)**
+*   **Directive:** "Your proof must be formatted as a rigid, numbered chain of equalities: $Step 1: Term A = Term B$, $Step 2: Term B = Term C$, etc. For every single step, state exactly which axiom was applied, to which specific subterm, and with what exact variable substitutions."
+
+**5. Prompt for Lemma Generation**
+*   **Directive:** "Before attempting to reach the target equation directly, spend 3-5 steps deriving intermediate identities (Lemmas) by unifying variables in the source axiom (e.g., $x=y=z$). Use these lemmas to build stepping stones toward the final proof."
+
+--- Batch 9 Analysis ---
+Based on the provided dataset of failed proof searches, here is a meta-analysis of why the models "give up" or output mathematically invalid proofs (hallucinations), followed by a Persistence Strategy for better prompting.
+
+### 1. Search Depth
+**Analysis:** The model exhibits **illusory search depth**. While it may output lengthy proofs containing 10 to 35 "steps" (as seen in `hard_0199`), the actual valid equational search depth rarely exceeds 2 or 3 steps. 
+* **Early Halting:** If the model cannot find a clear path after making basic, obvious variable assignments (e.g., substituting $y=x$), it either gives up entirely (resulting in empty responses like `hard_0192` and `hard_0175`) or commits to a completely fabricated logical path to force a conclusion. 
+* **Lack of Backtracking:** The model operates in a purely forward-chaining, linear text-generation mode. When it hits a dead end, it never backtracks to try a different substitution branch. 
+
+### 2. Missing Links
+**Analysis:** The model consistently overlooks **complex unifications**, such as substituting a nested term into a single variable to trigger a cancellation or overlap (critical pairs). 
+* **"Magic" Bridges:** When the model cannot figure out the missing unobvious substitution to connect two terms, it uses linguistic filler to bypass the mathematical gap. Examples include:
+  * *"a short calculation shows"* (`hard_0026`)
+  * *"through standard substitutions"* (`hard_0074`)
+  * *"it is a known result in equational logic"* (`hard_0199`)
+* By substituting rigorous algebra with these vague phrases, the model hides the fact that it failed to find the actual substitution link.
+
+### 3. Local Optima
+**Analysis:** The model frequently gets trapped in **semantic local optima**. Instead of staying focused on syntactic term-rewriting, it gets distracted by attempting to prove global structural or set-theoretic properties of the magma.
+* **Overreaching Hypotheses:** The models repeatedly try to prove that the magma is trivial/singleton (`hard_0030`, `hard_0084`), that a function is bijective/surjective (`hard_0030`), or that all elements are idempotent squares (`hard_0143`).
+* Once the model latches onto one of these high-level algebraic properties, it gets stuck in a loop trying to justify it with flawed logic, completely abandoning the purely syntactic path required to reach the target equation.
+
+### 4. Complexity Bias
+**Analysis:** The model suffers from a severe **complexity bias**—a fear of expanding terms into large Abstract Syntax Trees (ASTs).
+* **Premature Collapse:** When substitutions cause an expression to grow deep with nested parentheses (e.g., $x = ((y * x) * x) * (x * z)$), the model avoids managing the complexity. Instead, it rationalizes that the complexity "forces" the equation to collapse.
+* **False Generalizations:** It prematurely gives up on tracking the variables and falsely claims that the equation forces *all* products to equal a single fixed constant (`hard_0002`), or relies on pseudo-algorithms like "Knuth-Bendix completion logic" (`hard_0074`) to wave away the complexity of the expanded terms. 
+
+---
+
+### 💡 Persistence Strategy (Prompting Recommendations)
+
+To encourage the model to explore alternative, non-obvious transformation paths and avoid giving up or hallucinating, the prompt should enforce the following constraints:
+
+1. **Mandate Strict Syntactic Rewriting (Ban Semantics):**
+   * *Prompt Instruction:* "Do not use semantic arguments. Do not attempt to prove that the magma is trivial, singleton, commutative, or that mappings are surjective/injective. The proof must be a strict, unbroken sequence of syntactic algebraic string replacements."
+2. **Require Explicit Substitution Declarations:**
+   * *Prompt Instruction:* "You are forbidden from using phrases like 'by standard substitution', 'a short calculation shows', or 'it is a known result'. For every single step, you must explicitly declare the exact variable mapping. Format: `Apply Eq1 with [x -> term1, y -> term2]`."
+3. **Implement a "Scratchpad" with Backtracking:**
+   * *Prompt Instruction:* "Use a `<scratchpad>` to explore at least 3 distinct, non-obvious variable substitutions (e.g., substituting a complex term into $y$ while keeping $x$ constant). If an expansion grows beyond 5 levels of nested parentheses without simplifying, explicitely state 'BACKTRACK' and explore a different substitution path."
+4. **Encourage Sub-Goal Generation:**
+   * *Prompt Instruction:* "Do not aim directly for the target equation from step 1. Establish syntactic sub-goals. First, attempt to derive a left-identity, a right-identity, or an idempotence rule ($x*x = ...$). Assign temporary variables (e.g., `Let P = x*y`) to manage parenthesis depth during complex unifications."
+5. **Force Overlap (Critical Pair) Exploration:**
+   * *Prompt Instruction:* "To find unobvious links, look for overlaps. Identify the inner-most sub-term of your current equation, and find a substitution that makes the left-hand side of the axiom exactly match that sub-term."
+
+--- Batch 10 Analysis ---
+Based on the provided dataset of failed proof attempts (False Negatives), here is a meta-analysis of why the models "give up" or fail, followed by an actionable Persistence Strategy to improve prompt design.
+
+### Meta-Analysis of Failed Proof Searches
+
+**1. Search Depth (Premature Abandonment)**
+Models consistently abandon strict formal derivation after an extraordinarily shallow search depth (typically **1 to 4 steps**). 
+*   In `hard_0091` and `hard_0198`, the model performs exactly two basic substitutions ($z=x$, $y=x$) and then stops algebraic manipulation. 
+*   In `hard_0166`, the model manages 5 steps of translating the equation into functional/operator notation ($L_x$) but stops as soon as the algebraic path to the goal isn't immediately visible.
+*   Once the shallow search is exhausted, the model transitions into "hallucination mode" to bridge the gap.
+
+**2. Missing Links (Overlooking Complex Substitutions)**
+The models consistently overlook **"bootstrapping" or complex unifications**. 
+*   They naturally try simple substitutions (e.g., setting $x=y$ or $z=x$) but fail to substitute complex expressions into variables (e.g., substituting $z = x * y$ or $z = (x * x)$).
+*   They fail to work *backwards* from the target equation. For instance, in `hard_0066`, the target is deeply nested: `(((y * x) * y) * y) * y`. The model fails to recognize that by substituting complex sub-terms from the target into the source axiom, it can incrementally build this nested structure.
+
+**3. Local Optima (Trapped by Semantic Abstractions)**
+Instead of getting stuck in a loop of expanding and shrinking algebraic terms, the model gets trapped in a **semantic local optimum**. 
+*   In `hard_0166`, the model derives a functional relationship ($L_{z*y} = L_y^{-1} L_z^{-1}$) and gets stuck treating it as an abstract algebraic concept, falsely claiming this "implies a Boolean group."
+*   In `hard_0157`, the model hallucinates that a function $f(u)$ is well-defined and independent of other variables, trapping itself in a pseudo-logical argument rather than continuing syntactic term rewriting. 
+*   The model prefers sounding like a human mathematician (appealing to bijections, permutations, and trivial magmas) over doing the mechanical work of an automated theorem prover.
+
+**4. Complexity Bias (Fear of Term Explosion)**
+There is a massive complexity bias. As soon as a substitution causes a term to grow significantly in length, the model exhibits "proof fatigue." 
+*   In `hard_0151` and `hard_0198`, the model recognizes that expanding the terms further will result in massive, hard-to-track strings. To bypass this, it hallucinates global properties, claiming the equations "force the magma to be trivial" or citing non-existent theorems ("established theorem by J. Ježek").
+*   In `hard_0178`, instead of wrangling the terms, the model uses semantic pleading: "All finite and infinite constructions... inherently satisfy Equation 2."
+
+---
+
+### The "Persistence Strategy" (Prompting Directives)
+
+To encourage the model to explore alternative, non-obvious transformation paths and prevent premature abandonment, the system prompt must enforce strict syntactic discipline and provide heuristic search strategies.
+
+**1. Ban Semantic Shortcuts & Hallucinated Theorems**
+*   **Directive:** "You are acting as a strict automated theorem prover (like Prover9). You are strictly forbidden from using semantic arguments (e.g., 'trivial magmas', 'bijections', 'surjective maps') or citing external theorems. Every step must be a pure syntactic substitution of terms."
+
+**2. Enforce Minimum Search Depth & Complex Substitutions**
+*   **Directive:** "Do not give up after 3-4 steps. If a direct path is not obvious, you must attempt at least 10 purely algebraic manipulations. Specifically, you must attempt **complex substitutions**: replace a variable in Eq1 with an entire sub-term found in Eq2 (e.g., if Eq2 contains $(x*y)*z$, substitute $w = (x*y)$ into Eq1)."
+
+**3. Implement Inside-Out Target Matching (Working Backwards)**
+*   **Directive:** "Look at the target equation. Identify its innermost nested term. Make it your intermediate goal to derive a lemma that generates this specific inner term from the variables of Eq1. Once found, treat this lemma as a new rewrite rule and apply it to build the next outer layer of the target equation."
+
+**4. Branching and Backtracking (Tree-of-Thoughts)**
+*   **Directive:** "If your current substitution path results in a term that is growing exponentially without generating matching sub-strings from the target equation, explicitly write: *'Path diverging, backtracking.'* Then, return to your original equation and apply a completely different substitution (e.g., swapping left-side and right-side applications)."
+
+**5. Prevent False Positives ("False Proofs")**
+*   **Directive:** "If you cannot close the logical gap between Eq1 and Eq2 using strict $A=B$, $B=C \implies A=C$ substitution steps, **do not output VERDICT: TRUE**. If the algebraic path becomes too complex or dead-ends, you must acknowledge the failure to find a proof and proceed to search for a Counterexample instead."
+
+--- Batch 11 Analysis ---
+Based on the provided dataset of failed proof searches, here is a meta-analysis of why the models failed and hallucinated, followed by a Persistence Strategy to improve the prompt.
+
+### **Meta-Analysis of Failed Proof Searches (False Negatives)**
+
+**1. Search Depth**
+* **Shallow Algebraic Exploration:** The models exhibit extremely shallow syntactic search depths, typically halting valid algebraic manipulation after just 1 or 2 basic substitutions. 
+* **Premature Abort / Cut-offs:** When the models fail to see a direct path within a few steps, they either freeze and return empty responses (e.g., `hard_0094`, `hard_0137`, `hard_0141`), or they completely abandon term rewriting and switch to generating unstructured, hallucinated text.
+
+**2. Missing Links**
+* **Lack of Compound Substitutions:** The models almost exclusively try trivial substitutions like $y \to x$ or $z \to x$ (e.g., in `hard_0083`). They overlook the crucial "unobvious" step of substituting a variable with a compound term (e.g., $y \to (x * z)$). 
+* **Failure to Isolate Sub-terms:** The models miss intermediate lemmas that define invariant sub-terms. Instead of using the axioms to figure out how to build the target's deeply nested structures, they hallucinatively assume that terms will just naturally "cancel out" or act as identity elements (e.g., incorrectly asserting $z*z$ becomes an arbitrary element in `hard_0039`).
+
+**3. Local Optima**
+* **The "Triviality" Trap:** Because the models cannot find a syntactic path, they get stuck in a "semantic local optimum." To force a `TRUE` verdict, they hallucinate that the axioms force a "structural collapse," a "trivial variety" (size-1 magma), or an "elementary abelian 2-group" (`hard_0083`, `hard_0166`, `hard_0097`, `hard_0149`). They trick themselves into thinking that if all elements equal $x=y$, then the target equation is trivially true, completely bypassing the actual mathematical challenge.
+* **Overgeneralizing Properties:** The models frequently get stuck trying to falsely prove idempotence ($x*x=x$) or claiming operations are independent of certain variables (e.g., claiming $x*y$ depends only on $y$ in `hard_0185`).
+
+**4. Complexity Bias**
+* **Intimidation by Nested Targets:** The target equations (`eq2`) in these hard problems contain deeply nested layers (e.g., $x = x * (x * (y * (y * x)))$). The models suffer from a strong complexity bias; seeing a massive structural mismatch between `eq1` and `eq2`, they assume a step-by-step rewrite is impossible. 
+* **Shortcut Seeking:** This perceived complexity drives the model to seek meta-mathematical shortcuts (like exhaustive enumeration of small magmas or finite field theory) rather than persisting through the tedious algebra required to inflate the source equation into the target equation.
+
+---
+
+### **Persistence Strategy (Prompt Recommendations)**
+
+To force the model to explore alternative, non-obvious transformation paths and prevent it from "giving up" via hallucination, update the prompt with the following directives:
+
+**1. Ban Semantic Shortcuts (Force Syntactic Proofs)**
+> *"You must prove the relationship using STRICT, step-by-step syntactic term rewriting. DO NOT use meta-mathematical arguments. It is strictly forbidden to claim the magma is trivial, to claim a 'structural collapse', or to rely on finite model sizes/exhaustive enumeration. Your proof must apply equations to equations."*
+
+**2. Mandate Compound Substitutions**
+> *"Do not limit yourself to substituting variables with other single variables (like $y \to x$). To bridge the structural gap, actively explore substituting variables with complex compound terms (e.g., substitute $y \to (x * z)$ or $x \to ((y * x) * z)$). Complex nested targets require substituting complex terms into the base axiom."*
+
+**3. Enforce Step-by-Step Formatting (Prevent Hallucinated Leaps)**
+> *"Do not skip steps or declare that terms evaluate independently without proof. Every step of your proof must be formatted as:*
+> *1. Apply Eq [X] with substitutions: [var1 $\to$ term1, var2 $\to$ term2]*
+> *2. Resulting intermediate equation: [Write the exact output]."*
+
+**4. Goal-Oriented Lemma Generation**
+> *"If the target equation looks highly complex or deeply nested, do not give up. First, spend 3-5 steps generating 'Lemmas'—intermediate equations that help you understand how terms behave. Look for ways to isolate variables, create self-canceling loops, or build right/left absorbing expressions before attacking the final target."*
+
+--- Batch 12 Analysis ---
+Based on the analysis of the "hard" cases provided, here is a meta-analysis of why the models failed to find valid proofs, followed by a **Persistence Strategy** to improve future performance.
+
+### 1. Analysis of Failed Proof Searches
+
+**A. Search Depth (The "Three-Substitution" Ceiling)**
+In almost all cases (e.g., `hard_0143`, `hard_0053`), the model stops exploring new substitutions after roughly 3–4 steps. It typically tries:
+1.  Identity: $x=y$ or $y=z$.
+2.  Self-application: $z=x$.
+3.  Constant substitution: $z = (x*x)$.
+If a derivation requires a "depth" of 6 or more substitutions, or the introduction of a temporary variable to hold a complex term, the model stops and pivots to a "Structural Conclusion" (e.g., "this must be a singleton magma") to resolve the prompt.
+
+**B. Missing Links (The "Replacement" Blind Spot)**
+The models consistently overlook **Self-Nested Substitution**. In equational theories, a breakthrough often occurs by replacing a single variable $x$ with the *entire side* of the original equation. 
+*   *Example:* If $x = f(x, y)$, the model rarely tries $x = f(f(x, y), y)$.
+*   In `hard_0031`, the model failed to see that $x$ is defined recursively; it needed to substitute the definition of $x$ back into the $x$ positions on the right-hand side to find the "pivot" term that allows cancellation.
+
+**C. Local Optima (The Idempotency Trap)**
+In problems like `hard_0053` and `hard_0143`, the model gets stuck in a loop of trying to prove "Idempotency" ($x*x=x$) or "Left-Zero" properties. Once it derives a property that *looks* like a simplification (e.g., "elements in the image are idempotent"), it stops searching the broader algebraic space and tries to force the target equation to fit that specific property. This is a "local optimum" because while the property might be true, it is often a side-effect rather than the shortest path to the proof.
+
+**D. Complexity Bias (The "Restrictive Structure" Heuristic)**
+When a model encounters a complex equation like `hard_0170` or `hard_0077`, it exhibits a "Surrender Heuristic." It assumes that because the equation is "extremely restrictive," the only possible model is a known one (like an Abelian group or a singleton). It then "hallucinates" a proof based on that known structure rather than performing the raw algebraic manipulation required.
+
+---
+
+### 2. The Persistence Strategy
+
+To prevent models from "giving up" or taking structural shortcuts, the following strategy should be embedded into the prompting instructions:
+
+#### **Strategy 1: The "Expansion-before-Contraction" Mandate**
+*   **The Problem:** Models try to simplify terms too early.
+*   **The Prompt Instruction:** "Do not attempt to simplify the equation in the first 5 steps. Instead, generate five distinct 'expanded' versions of Equation 1 by substituting $x$ with the entire Right-Hand Side of Equation 1. Observe if any repeating patterns or 'kernels' emerge."
+
+#### **Strategy 2: The "Bridge" Technique (Bidirectional Search)**
+*   **The Problem:** Models only work forward from Eq1 to Eq2.
+*   **The Prompt Instruction:** "Perform a bidirectional derivation. Spend 5 steps transforming Eq1 forward, and 5 steps transforming Eq2 backward (by expanding its variables using Eq1). The goal is to find a common intermediate term. If no match is found, increase the nesting depth of the substitutions."
+
+#### **Strategy 3: Anti-Heuristic Verification**
+*   **The Problem:** Models assume a structure (e.g., "this is a Right-Zero Magma").
+*   **The Prompt Instruction:** "If you conclude that the equation implies a specific structure (like a group or a singleton), you must provide a counter-example or a specific algebraic step that forbids the existence of a non-trivial 4-element magma. If you cannot provide a formal contradiction, you must return to the symbolic manipulation of terms."
+
+#### **Strategy 4: The "Variable Permutation" Checklist**
+*   **The Problem:** Models ignore the interaction between different variables ($z$ and $w$).
+*   **The Prompt Instruction:** "Explicitly test substitutions that 'cross' variables. If Eq1 has $x, y, z$, try substituting $z = (x * y)$. This breaks the local loop of using only single-letter substitutions and often reveals the 'absorption' properties needed for the proof."
+
+#### **Strategy 5: Diversity of Paths**
+*   **The Problem:** Models follow one path, fail, and stop.
+*   **The Prompt Instruction:** "Identify three different 'starting' substitutions (e.g., $x=y$, $x=y*y$, $y=z*z$). Pursue all three paths for at least 4 steps each before deciding which path is most likely to lead to the target equation."
+
+--- Batch 13 Analysis ---
+Based on a detailed meta-analysis of the provided dataset, here is the breakdown of why the models failed to find valid proofs, followed by a **Persistence Strategy** to improve future prompt engineering.
+
+### 1. Search Depth
+* **Observation:** The models exhibited a **search depth of near-zero** for valid syntactic manipulations. 
+* **Analysis:** Instead of chaining 5 to 10 rigorous algebraic substitutions, the models prematurely aborted the search after 0 to 2 steps. When immediate substitution failed, they abandoned equational derivation entirely and jumped to high-level (and hallucinated) global claims, such as citing "exhaustive checks of 16 possible multiplication tables" (`hard_0186`) or claiming the identity is an "established result" (`hard_0014`).
+
+### 2. Missing Links
+* **Observation:** The models consistently overlooked **nested term substitutions** and unification.
+* **Analysis:** In equational logic, proofs often require substituting an entire complex expression into a variable (e.g., $x \to (y*x)*z$). The models missed these "unobvious" mechanical links. To bridge the gap, they hallucinated advanced structural properties. For example, in `hard_0128`, instead of recursively applying the axiom to itself, the model hallucinated that left translations ($L_y$) are bijections. In `hard_0114`, it hallucinated that the magma must be an "elementary abelian 2-group."
+
+### 3. Local Optima
+* **Observation:** The models became trapped in **"semantic reasoning" loops** rather than syntactic execution.
+* **Analysis:** Models are heavily biased toward generating text that *sounds* mathematically convincing. In `hard_0132` and `hard_0074`, the models wrote paragraphs arguing that the axioms "enforce strong structural constraints" or "conflicting equality constraints" without performing a single valid algebraic substitution. They optimized for linguistic fluency over mathematical rigor, getting stuck in a local optimum of writing hand-wavy meta-mathematical justifications.
+
+### 4. Complexity Bias
+* **Observation:** The models exhibited a strong bias against **intermediate expression bloat**.
+* **Analysis:** In equational logic, proving that Equation 1 implies Equation 2 often requires creating massive, highly complex intermediate terms before they collapse and simplify. Because the source and target equations looked very different, the models assumed a direct path was impossible. Rather than pushing through the complexity, they gave up and assumed a profound structural collapse—frequently (and incorrectly) declaring that the magma must be "trivial" (`hard_0186`, `hard_0084`, `hard_0014`) or "constant."
+
+---
+
+### 🌟 Persistence Strategy (Prompting Recommendations)
+To force the model to explore non-obvious transformation paths and prevent it from "giving up," the system prompt must explicitly counteract these bad habits.
+
+**1. Ban Semantic "Shortcuts" and Meta-Reasoning:**
+* *Prompt Addition:* "Do NOT attempt to classify the magma using advanced structural concepts (e.g., groups, bijections, permutations, left/right translations, or abelian properties). You may not use arguments by contradiction, finite model checks, or declare the magma 'trivial'. All proofs must be purely syntactic, step-by-step term rewriting."
+
+**2. Enforce Strict Syntactic Formatting (The "Chain" Rule):**
+* *Prompt Addition:* "Every step in your proof MUST explicitly state the exact substitution applied (e.g., 'Substitute $x \to A, y \to B$ into Eq1'). If you cannot write out the exact mapping, you cannot make the step. The proof must form an unbroken chain of equalities: $T_1 = T_2 = T_3 = \dots = T_n$."
+
+**3. Encourage Intermediate Complexity (Countering Complexity Bias):**
+* *Prompt Addition:* "Do not be afraid of generating massive, complex intermediate expressions. In equational logic, terms must often become much larger before they can be simplified. Deliberately substitute complex subterms from the target equation into the variables of the source axiom to find missing links."
+
+**4. Systematic Target-Driven Exploration:**
+* *Prompt Addition:* "If you are stuck, look at the sub-expressions in the Target Equation. Systematically substitute these sub-expressions into the variables of Equation 1. Expand the terms to a depth of 3 or 4 before attempting to collapse them."
+
+--- Batch 14 Analysis ---
+Based on the analysis of the failed proof attempts (False Negatives) in the "Equational Theories" challenge, here is a meta-analysis of why the models failed and a corresponding **Persistence Strategy**.
+
+### Analysis of Failure Patterns
+
+1.  **The "Singleton Collapse" Trap (Complexity Bias):**
+    In problems like `hard_0032` and `hard_0083`, models observed that `x` was defined by an expression containing arbitrary variables `y` and `z`. They prematurely concluded that the only way for the equation to hold for all `y, z` is if the magma is a singleton ($x=y$). This is a "complexity bias" where the model mistakes a restrictive identity for a trivializing one, stopping the search at Depth 1.
+
+2.  **Structural Hallucination (Local Optima):**
+    In `hard_0189` and `hard_0089`, the models correctly identified properties like "left-multiplication is a permutation." However, they then forced the magma into a known category (e.g., "it must be a right-zero semigroup" or "it must be a vector space"). When the algebra didn't perfectly fit, they "hand-waved" the final steps.
+
+3.  **Missing "Middle-Term" Substitutions:**
+    Models struggled with identities where the target (`eq2`) required a term that doesn't appear in `eq1`. For example, in `hard_0178`, the model tried to analyze the "growth of terms" rather than finding a specific substitution (like replacing `y` with `y*x`) that would bridge the gap. They lacked the "Look-Ahead" to perform substitutions that temporarily increase term complexity to achieve later simplification.
+
+4.  **Empirical Exhaustion:**
+    In `hard_0015`, the model relied on checking small finite magmas (size 2 or 3). When it found no counterexample, it assumed the implication was true but lacked the persistence to find the equational proof, eventually timing out or providing a vague "obstruction" argument.
+
+---
+
+### Persistence Strategy: "Recursive Substitution & Structural Relaxation"
+
+To improve proof discovery and avoid false negatives, the prompt should instruct the model to adopt the following systematic exploration strategy:
+
+#### 1. The "10-Step Substitution Rule"
+*   **Action:** Explicitly forbid concluding "Singleton" or "False" until at least 10 distinct substitution cycles have been attempted.
+*   **Technique:** If $x = f(x, y, z)$, do not assume $x=y$. Instead, substitute $y \leftarrow f(x, y, z)$ back into the original equation to see if higher-order symmetries emerge.
+
+#### 2. Divergent Substitution (Temporary Complexity)
+*   **Action:** Encourage "uphill" moves. Models usually try to shrink terms (simplification). 
+*   **Technique:** Suggest substituting a variable with the *entire* side of an equation. For example, if $x*x = x*(y*(z*y))$, try replacing the $z$ in the RHS with the entire RHS expression. This "nesting" often reveals cancellations that simple reduction cannot.
+
+#### 3. Lemma Generation via "Partial Variable Pinning"
+*   **Action:** Before jumping to a global conclusion (like "this is a group"), derive at least three intermediate lemmas.
+*   **Technique:** 
+    *   Set $y=x$: What is the behavior of the diagonal ($x*x$)?
+    *   Find fixed points: Is there an $e$ such that $e*x=x$? 
+    *   Search for involutions: Does $L_y(L_y(x)) = x$? 
+    *   *Only* once these lemmas are found should the model attempt to categorize the magma structure.
+
+#### 4. The "Counter-Intuitive Mapping" Prompt
+*   **Action:** If a model feels "stuck" in a loop (Local Optima), it must force a "basis change."
+*   **Technique:** Explicitly ask: "If this magma is NOT a known structure (not a group, not a singleton), what property must the product $x*y$ have to satisfy the identity?" This forces the model to move away from structural hallucinations and back to raw equational manipulation.
+
+#### 5. Search Depth Requirement
+*   **Instruction:** "Search for a proof up to depth $N=5$ (where each depth is a full replacement of variables). If no proof is found, attempt to construct a counterexample of size 4 or 5. Do not declare the result based on size-2 or size-3 models alone, as these often miss 'Hard' properties."
+
+### Summary for Prompt Engineering:
+"When proving $Eq1 \implies Eq2$, do not assume the magma collapses to a singleton unless $x=y$ is explicitly derivable. Perform at least 10 substitutions, including 'uphill' moves that increase term length. If you identify a property like surjectivity, do not leap to a known structure; instead, derive three specific equational lemmas (e.g., idempotency of $x*x$) before attempting the final proof."
+
+--- Batch 15 Analysis ---
+Based on the analysis of the provided cases where the model incorrectly "verified" the implication (False Negatives), we can identify several recurring patterns of failure. These models often give up on formal substitution-based derivation in favor of **Structural Over-generalization**—assuming the equation forces the magma into a well-known but incorrect category (like a Boolean group or a trivial magma).
+
+### Meta-Analysis of Failures
+
+#### 1. Search Depth & Early Termination
+Models typically stop exploring raw substitutions after **2 to 3 steps**. Instead of continuing the chain of substitutions (e.g., substituting a derived identity back into the original), they switch to "semantic" reasoning. They attempt to find a "shortcut" by claiming the magma must be a Group, a Quasigroup, or Trivial. 
+*   **Example (hard_0097/hard_0135):** The model correctly identifies that the equation is highly restrictive but prematurely concludes it forces a "Trivial Magma" ($|M|=1$) without proving the intermediate steps required to collapse all elements.
+
+#### 2. Missing Links (The "Unobvious" Substitution)
+The models consistently overlook **Self-Substitution** and **Variable Swapping** across independent sub-terms. 
+*   **The Gap:** In `hard_0066`, the model realizes $R_z$ is injective, but it fails to perform the specific substitution $z = (y*y)*y$ and $x = y$ simultaneously to find the fixed point. 
+*   **Paramodulation Failure:** Models rarely substitute a complex term from the LHS of Eq1 *into* the variable slots of Eq1 itself (nested substitution).
+
+#### 3. Local Optima (Structural Traps)
+Models frequently get stuck in a "Functional Interpretation" loop. They define left/right translation maps ($L_x, R_y$) and try to solve the problem as a composition of permutations. 
+*   **The Trap:** If a model sees $x = (\dots) * (x * z)$, it immediately assumes $R_z$ is a permutation. It then spends its entire "reasoning budget" trying to prove the magma is a Group, ignoring the possibility that the identity might hold in non-associative structures that are *not* groups.
+
+#### 4. Complexity Bias
+Models exhibit a **"Symmetry Bias."** If Eq2 looks significantly more symmetric than Eq1 (e.g., `hard_0182`), the model assumes Eq1 must imply some form of commutativity or identity existence to bridge the gap. It then "hallucinates" an identity element $e$ to make the derivation easier.
+
+---
+
+### Persistence Strategy: Improving "Non-Obvious" Path Exploration
+
+To encourage the model to persist and find valid proofs without falling into structural hallucinations, the following strategy should be integrated into the prompt or system instructions:
+
+**1. Mandate "Algebraic Neutrality"**
+*   **Instruction:** "Do not assume the magma is a Group, Quasigroup, or Trivial unless you can derive $x=y$, $(x*y)*z = x*(y*z)$, or the existence of a unique $e$ explicitly through substitution steps."
+*   **Goal:** Prevents the model from jumping to "Boolean Group" or "Trivial" conclusions (as seen in `hard_0062` and `hard_0097`).
+
+**2. The "Substitution Iteration" Requirement**
+*   **Instruction:** "If a derivation path stalls, perform a 'Deep Swap': take a derived identity $t_1 = t_2$ and substitute the entire term $t_1$ into every occurrence of variable $x$ in the original Equation 1."
+*   **Goal:** Forces the model out of local optima and toward the complex nested terms often required for these proofs.
+
+**3. Exhaustive Translation Mapping (Variable Fixing)**
+*   **Instruction:** "Systematically test three specific substitution sets: 
+    *   (a) $y = x, z = x$ (Diagonalization)
+    *   (b) Replace $x$ with $x*x$ (Expansion)
+    *   (c) If the equation is $x = f(x, y, z)$, test if $f(x, y, z) = f(x, w, v)$ implies $y=w, z=v$ (Injectivity Check)."
+*   **Goal:** Provides a structured "Search Depth" beyond the first 5 steps.
+
+**4. "Anti-Hallucination" Verification**
+*   **Instruction:** "Before concluding TRUE, identify the exact sequence of substitutions. If you claim a property like 'Left translations are identical permutations,' you must cite the specific substitution $(e.g., y=z)$ that eliminates the variable dependency."
+*   **Goal:** Counters the "Missing Link" error where models claim independence (as in `hard_0118`) without proof.
+
+**5. Target-Oriented Branching**
+*   **Instruction:** "Work backward from Equation 2 for two steps. What term must be equivalent to the RHS of Eq2 for it to reduce to $x$? Search specifically for substitutions in Eq1 that generate that intermediate term."
+*   **Goal:** Reduces Complexity Bias by creating a bridge between the "different-looking" source and target.
+
+--- Batch 16 Analysis ---
+Based on the provided dataset of failed proof searches, here is a meta-analysis of why the models "give up" or fail to find valid proofs, followed by a Persistence Strategy for prompting.
+
+### 1. Search Depth
+* **Zero to Shallow Depth (0-2 steps):** The models demonstrate an extremely low tolerance for syntactic equational manipulation. In almost all cases, the search depth is essentially zero. Instead of generating intermediate terms via substitutions, the models immediately pivot to writing prose about the hypothetical properties of the algebraic structure. 
+* **Premature Termination:** In several instances (e.g., `hard_0109`, `hard_0057`, `hard_0105`), the model simply stops generating text mid-sentence right after making a broad semantic claim, indicating a total failure of the search tree or an inability to syntactically formalize its own intuition.
+
+### 2. Missing Links
+* **Overlooking Variable Independence (Free Variables):** In equations where variables exist on one side but not the other (e.g., `hard_0123`: $x * y = (x * (y * x)) * z$, or `hard_0105`: $x * y = (x * z) * (y * w)$), the model correctly deduces *semantically* that expressions evaluate to constants (e.g., "the Cayley table row is constant"). However, it completely misses the *syntactic* link: explicitly substituting dummy variables to prove independence (e.g., substituting $z$ for a specific term to equate two expressions).
+* **Failure to Generate Lemmas via Variable Unification:** The model overlooks the simplest proof tactic: setting variables equal to each other (e.g., $y=x$, $z=x$) to collapse complex axioms into smaller, manageable lemmas (like $x*x = x$) before attacking the final goal.
+
+### 3. Local Optima
+* **The "Semantic Triviality" Trap:** The most prominent local optimum is a conceptual one. When faced with deeply nested identities (like $x = ((y * x) * x) * (x * z)$ in `hard_0083` and `hard_0136`), the model assumes the axiom is so restrictive that it must force the entire magma to be a trivial singleton ($x = y$). 
+* Once the model asserts "the magma is trivial" or "the model is a right-zero semigroup," it considers the proof complete. It gets stuck in a loop of justifying this hallucinated meta-theorem using flawed logic about quasigroups, surjectivity, or Cayley tables, rather than attempting to rewrite the equation.
+
+### 4. Complexity Bias
+* **Asymmetry Shock:** The models exhibit a strong complexity bias when the target equation (`eq2`) looks structurally alien to the axiom (`eq1`)—especially when new variables are introduced in strange places. 
+* **Shortcut Seeking:** Because bridging the syntactic gap looks mathematically daunting, the model actively seeks "shortcuts." Instead of incrementally building complex terms to match the target, it fabricates sweeping global structural collapses (e.g., asserting $f^3(x) = x$ or $x=y$) that would magically make *any* subsequent equation true.
+
+---
+
+### Persistence Strategy (Prompting Recommendations)
+
+To force the model to explore non-obvious transformation paths and prevent it from giving up, the prompt must fundamentally restrict its behavior and strictly guide its methodology. 
+
+**Include the following directives in your system prompt:**
+
+1. **Mandate Strict Syntactic Rewriting (Ban Semantic Shortcuts):**
+   * *"You must prove the implication using ONLY strict syntactic term rewriting (algebraic substitutions). Do NOT use semantic arguments, evaluate magma sizes, discuss Cayley tables, quasigroups, or claim the structure forces 'triviality'. Any proof relying on these meta-properties will be rejected."*
+
+2. **Enforce Step-by-Step Lemma Generation:**
+   * *"Do not attempt to prove the target equation in one leap. Begin by generating simpler intermediate lemmas. Step 1: Substitute $y=x$, $z=x$, etc., to find behaviors of $x*x$. Step 2: Use these smaller lemmas to substitute back into the main axiom."*
+
+3. **Provide a Strategy for 'Independent' Variables:**
+   * *"If the axiom contains variables on one side that do not appear on the other (e.g., $x * y = \text{expression with } z$), explicitly use this to your advantage. Substitute the target term or complex sub-terms into the 'free' variable (like $z$) to bridge the gap to the target equation."*
+
+4. **Deep Self-Substitution:**
+   * *"If you are stuck, apply 'Deep Substitution': Substitute the entire equation into one of its own variables (e.g., replace $x$ in the equation with the entire RHS of the equation). This expands the term size and often reveals non-obvious cancellation paths."*
+
+5. **Format Constraint (To prevent prose loops):**
+   * Require a rigid output format that disallows paragraphs of text. 
+   * *"Format every step strictly as: `[Step X]: Term A = Term B [by substituting Y for Z in Eq W]`. Do not write paragraphs explaining group theory."*
+
+--- Batch 17 Analysis ---
+Based on the meta-analysis of the provided model responses, here is a breakdown of why the models failed to find valid proofs and the resulting "Persistence Strategy" to improve their performance.
+
+### 1. Search Depth
+**Finding:** The models essentially have a **syntactic search depth of zero to two steps**. 
+Instead of systematically applying equational rules (substituting terms into axioms), the models almost immediately abandon syntactic manipulation. When they do attempt algebra (as in `hard_0198` or `hard_0166`), they only perform 1 to 3 legitimate steps before hallucinating "convenient" properties (e.g., claiming a function is a bijection, or that an element is an involution/identity) to close the gap. 
+
+### 2. Missing Links
+**Finding:** The models completely overlook **compound substitutions and intermediate lemma generation**.
+In equational logic, proving a target often requires "unobvious" substitutions—such as substituting a variable with the entire axiom itself, or identifying that a specific nested substitution creates an idempotent element (e.g., proving `x * x = x` as an intermediate step). The models fail to look for sub-term unification. They do not ask, *"What complex term must I substitute for `y` so that the left side of Eq1 matches the right side of Eq2?"* 
+
+### 3. Local Optima
+**Finding:** The models get trapped in a **"Semantic/Model-Theoretic Loop."**
+Rather than moving toward the goal equation, the models get stuck trying to build finite counterexamples (e.g., checking the 16 possible 2-element magmas). When they fail to find a 2-element or 3-element counterexample, they fall into a logical trap: they incorrectly generalize that *only trivial/singleton magmas exist* (seen in `hard_0187`, `hard_0045`, `hard_0042`). They spend their compute trying to justify this false semantic claim instead of exploring different algebraic transformation paths.
+
+### 4. Complexity Bias
+**Finding:** The models exhibit a severe **Complexity Bypass Bias**.
+When the target equation (`eq2`) looks structurally very different from the source equation (`eq1`)—such as mismatched variable counts or vastly different nesting depths—the model prematurely gives up. Rather than taking incremental steps to grow or shrink the equation, the model relies on "meta-theorems" (e.g., declaring the structure is "so strongly constrained" that it must be an abelian 2-group or a singleton). This is a hallucinated shortcut to bridge a complexity gap the model feels it cannot cross syntactically.
+
+---
+
+### 💡 Persistence Strategy (Prompting Recommendations)
+
+To prevent the model from "giving up" and to force it to explore alternative, non-obvious transformation paths, the prompt should be engineered with the following constraints and strategies:
+
+**1. Mandate Strictly Syntactic Proofs (Ban Semantic Shortcuts)**
+*   **Instruction:** "You must prove the implication using *strictly syntactic term rewriting*. Do not use finite model enumeration (e.g., checking 2-element magmas). Do not assume the magma is a singleton, a group, or possesses bijections/involutions unless explicitly derived step-by-step from the axiom."
+
+**2. Enforce "Forward-Chaining" Depth Limits**
+*   **Instruction:** "Before evaluating if the target equation is reachable, you must generate at least 5 intermediate lemmas. Do this by applying Eq1 to its own subterms, or substituting $x, y, z$ with $x*x$ or $(x*y)*z$. List these intermediate equations clearly."
+
+**3. Require Explicit Substitution Mapping (Preventing Hallucinations)**
+*   **Instruction:** "For every algebraic step, you must explicitly state the substitution mapping in the format: `Apply Eq1 with [x := A, y := B, z := C]`. Then, write out the exact unsimplified result before applying further transformations. If the substitution does not strictly match the axiom's template, the step is invalid."
+
+**4. Introduce a "Working Backwards" (Unification) Sub-task**
+*   **Instruction:** "If the forward derivation is stuck, look at Eq2. Identify the innermost terms of Eq2. What substitution into Eq1 would produce these inner terms? State your hypothesis for how to bridge the structure of Eq1 to Eq2 before beginning the algebraic manipulation."
+
+**5. Reframe "Stuck" States**
+*   **Instruction:** "If you find yourself concluding that 'no non-trivial magmas satisfy this equation,' realize you are stuck in a local optimum. Treat this as a signal to restart your proof search using a completely different initial substitution, such as self-substitution (setting all variables to $x$)."
+
+--- Batch 18 Analysis ---
+Based on the analysis of the provided False Negative (FN) cases—where the model correctly identified the implication as `TRUE` but was marked `FALSE` (likely due to a mismatch in the expected "Formal Proof" format or a failure to provide a counterexample when it should have)—the following meta-analysis identifies why these models "failed" the system's verification despite correct intuition.
+
+### 1. Search Depth & Stopping Points
+*   **Premature Convergence on "Abstract Structure":** Models often stopped searching for a step-by-step substitution proof after 3–5 steps because they successfully mapped the equation to a known algebraic structure (e.g., Steiner Quasigroups, Abelian groups of exponent 2, or Left/Right Translation Involutions). 
+*   **The "Structural Leap":** Once the model concluded "This is a group" or "This is a permutation $\phi$," it ceased exploring the specific term-rewriting path required for a formal equational proof.
+
+### 2. Missing Links: The "Unobvious" Moves
+*   **The Symmetrization Step:** In problems like `hard_0177`, models recognized symmetry ($x \backslash y = y \backslash x$) but struggled to translate that back into a pure substitution sequence (e.g., $(((x*y)*y)*x)$). 
+*   **Range Idempotency:** In `hard_0126` and `hard_0022`, the model correctly identified that the *range* of the operation is idempotent ($u*u=u$ where $u=x*y$) but failed to show the specific substitution $x \to (x*y)$ that bridges the gap without intermediate "word" descriptions.
+
+### 3. Local Optima and Loops
+*   **The Operator Trap:** Models frequently switched to operator notation ($L_y, R_y, \phi$). While this simplifies reasoning, it often leads to a loop where the model proves the property for the *operator* (e.g., $\phi^3 = id$) but fails to re-expand this into the target equation's nested structure.
+*   **Identity Re-injection:** Models often found a sub-identity (like $x*x=x$) and repeatedly applied it to the same term, failing to realize the goal required substituting a *different* variable into the original axiom (e.g., replacing $z$ with $y*x$).
+
+### 4. Complexity Bias
+*   **The "Triviality" Shortcut:** In `hard_0031`, the model assumed the equation was so restrictive it forced a singleton set (size 1). This is a "complexity bias" where the model assumes if a transformation isn't immediately obvious, the space must be collapsed. It gave up on finding a constructive proof path in favor of a "collapse to triviality" argument.
+
+---
+
+### Persistence Strategy: Improving Transformation Discovery
+
+To encourage the model to find valid proofs and avoid these pitfalls, use the following prompting strategy:
+
+**1. Mandate "Variable Substitution Diversity":**
+> "Do not only simplify the current term. Actively try substituting complex terms (e.g., $x := (y * x)$ or $z := (x * z)$) into your base axioms to generate new identities before attempting to reach the target."
+
+**2. Prohibit "Structural Labeling" as a Proof Step:**
+> "Avoid identifying the magma as a 'group' or 'quasigroup' to bypass steps. If a structural property is found (e.g., commutativity), you must provide the specific sequence of substitutions that derives $x * y = y * x$ before using it."
+
+**3. Implement a "Bridge" Requirement:**
+> "If the target equation looks significantly more complex than the source, work from both sides. Transform the Left-Hand Side (LHS) for 5 steps, then transform the Right-Hand Side (RHS) for 5 steps, and attempt to meet at a common intermediate term."
+
+**4. Encourage "Element-Wise" Verification over "Operator" Logic:**
+> "While operator notation ($L_x$) is useful for discovery, the final proof must be expressed entirely in the original $(x * y)$ syntax. Ensure every 'translation' step corresponds to a valid substitution in the equational theory."
+
+**5. Counter-Bias for Triviality:**
+> "If you suspect the theory collapses to a singleton set, you must explicitly prove $x=y$ via substitution. If you cannot prove $x=y$, assume a non-trivial model exists and continue searching for a transformation path."
+
+--- Batch 19 Analysis ---
+Based on a meta-analysis of the provided model responses, here is an evaluation of why the models fail to find valid proofs (giving up or hallucinating), followed by a **Persistence Strategy** to improve their performance via prompting.
+
+### Meta-Analysis of Failed Proof Searches (False Negatives)
+
+**1. Search Depth: Premature Abandonment of Syntactic Proofs**
+The models typically abandon rigorous syntactic exploration very early—often after just 1 to 3 substitution steps. As soon as a direct algebraic path isn't immediately obvious, the models stop performing actual substitutions and transition into informal, prose-based semantic arguments (e.g., *"detailed analysis of small magmas shows contradictions arise"* in `hard_0002`, or *"repeating this substitution chain shows..."* in `hard_0126`). They simulate depth with word count rather than mathematical steps.
+
+**2. Missing Links: Overlooking "Inflationary" Substitutions**
+The models fail to realize that pure equational proofs often require making an equation much larger and more complex before it can collapse into the target. They miss "unobvious" cross-substitutions, such as plugging an entire expression (e.g., $y = (x * y) * z$) back into itself. Instead, they limit themselves to trivial variable swapping (e.g., setting $z=x$ and $w=x$). Because they don't generate these massive intermediate terms, they lack the "bridge" identities required to reach the target.
+
+**3. Local Optima: The "Semantic Trap"**
+The models frequently get stuck in local optima by abstracting the algebra into set-theoretic or functional concepts. Instead of generating new equations, they define sets (e.g., $S_x$, $A_x \cdot B_x$), constants (e.g., $K(z)=c$), or mappings (e.g., *global permutations* in `hard_0180`). They get trapped in a loop of analyzing these non-equational properties (*"since $v \in S_{K(a)}$..."*). This gives the model an illusion of progress, but in a strict equational theory framework, these semantic properties are dead ends that cannot be formally compiled into a proof step.
+
+**4. Complexity Bias: Hallucinating Global Shortcuts**
+When the target equation (`eq2`) looks structurally alien to the source equation (`eq1`)—such as having a different depth, right-vs-left associativity, or missing variables—the model's complexity bias kicks in. It decides that bridging the gap step-by-step is too complex. To resolve the prompt, it hallucinates a "global shortcut," declaring that the magma *must* be trivial (`hard_0094`), perfectly idempotent (`hard_0126`), or follow a global permutation rule (`hard_0180`). It uses high-level algebraic jargon (*"homomorphism-like properties", "closure of generated right identities"*) to mask the fact that it has given up on the proof.
+
+---
+
+### Persistence Strategy (Prompt Engineering Guidelines)
+
+To force the model to push through "dead ends" and discover non-obvious transformation paths, the prompt must constrain its behavior and alter its search algorithm. Incorporate the following directives into the system prompt:
+
+**1. Ban Semantic "Handwaving" (Enforce Pure Syntax)**
+* **Prompt Rule:** "You are operating in pure equational logic. You may not use set theory, define constants, functions, permutations, or rely on 'semantic' properties (e.g., 'the magma is trivial', 'image of the operation'). Every step must be a strict algebraic substitution of the form $A = B$."
+
+**2. Require Explicit "Show, Don't Tell" Expansions**
+* **Prompt Rule:** "Do not use phrases like 'by applying this iteratively' or 'structurally simplifies to'. If you substitute a term, you must write out the fully expanded equation in its entirety, no matter how long it is, before simplifying."
+
+**3. Implement a "Lemma Pool" (Breadth-First Exploration)**
+* **Prompt Rule:** "Do not attempt to prove Equation 2 immediately. First, generate a 'Lemma Pool' of at least 5 intermediate identities. Create these by substituting complex terms (e.g., the entire left or right side of Eq 1) into variables of Eq 1. Explore inflationary substitutions that make the terms larger before trying to shrink them."
+
+**4. Enforce Backward Chaining from the Target**
+* **Prompt Rule:** "If you are stuck moving forward from Eq 1, perform backward chaining from Eq 2. Look at the outermost operation of Eq 2. What specific substitution into Eq 1 would create a matching outer structure? Find the required substitution to make the tails of the equations unify."
+
+**5. Backtracking Protocol for Local Optima**
+* **Prompt Rule:** "If your proof requires you to say 'it is highly likely' or 'detailed analysis shows', you have hit a dead end. Stop, delete your current line of reasoning, go back to your last strictly verified $A = B$ identity, and try a radically different substitution (e.g., substituting a compound term like $(x*y)*x$ instead of a single variable)."
+
+--- Batch 20 Analysis ---
+Based on the meta-analysis of the provided failed proof searches, there is a clear and consistent failure mode: **The "Semantic Escape Hatch" Bias**. 
+
+When the model cannot immediately see the syntactic, step-by-step equational path, it abandons the symbolic proof search and resorts to higher-level semantic, structural, or set-theoretic mathematical reasoning. While often mathematically sound, these arguments are not formal equational proofs and therefore fail the strict requirements of the system.
+
+Here is the detailed analysis based on your requirements:
+
+### 1. Search Depth
+* **Extremely Shallow (0 to 3 steps):** The model gives up on pure equational substitution almost immediately. In cases like `hard_0182`, `hard_0130`, and `hard_0097`, the model executes **zero** formal equational substitutions. In `hard_0195` and `hard_0015`, it attempts 2 to 4 substitutions, hits a wall, and immediately switches to prose to justify the rest of the leap. It lacks the persistence to chain 8–15 substitutions, which is usually required for these hard problems.
+
+### 2. Missing Links
+* **Failure to Translate Properties into Syntax:** The model correctly identifies "unobvious" algebraic structures (e.g., "x absorbs terms," "right normal law," "left identity"). However, it misses the purely syntactic substitution paths required to formally prove them. 
+* **Overlooking Complex Self-Substitutions:** The model fails to substitute the entire axiom into a sub-term of itself. Instead of finding the "missing link" by replacing a variable with a massive complex term to force cancellation, it creates sets (e.g., $L_{x,z}$ or $K = \{y * (z * y)\}$) and argues about their membership. 
+
+### 3. Local Optima
+* **Trapped by Higher-Level Abstractions:** The model often finds a partial property (e.g., "left multiplication is surjective" in `hard_0125` and `hard_0134`) or a localized loop. Once it identifies this property, it becomes completely trapped in analyzing the *implications* of that property in English, rather than trying to manifest that property through a chain of continuous string replacements. It optimizes for "convincing the reader" rather than "completing the syntactic chain."
+
+### 4. Complexity Bias
+* **The "Triviality/Singleton" Premature Exit:** When the model looks at highly restrictive axioms (like `hard_0097` or `hard_0135`), it correctly deduces that the equation forces the magma to be trivial (size $\le 1$) or a constant operation. Because "everything is equal to $x$" in a singleton magma, the model believes the proof is complete and simply states, "Only singletons satisfy Eq1, which satisfy Eq2." It prematurely gives up on the equational mechanics because the overarching model structure seems too simple to warrant a complex proof.
+
+---
+
+### 🛡️ Persistence Strategy: Prompt Engineering for the Model
+
+To prevent the model from giving up and using the "semantic escape hatch," your prompt should include a strict set of constraints and behavioral guidelines:
+
+**1. Ban Semantic and Structural Reasoning (The "Syntax Only" Rule)**
+* *Prompt Addition:* "You must prove the implication strictly using algebraic substitutions. You are strictly forbidden from using set-theoretic arguments, mappings (e.g., $L_x, R_x$), surjectivity/bijectivity, finiteness, exhaustive enumeration, or arguing that the magma is a singleton ($|M|=1$) or constant. The proof must be a sequence of pure string replacements."
+
+**2. Redefine 'Proof Completeness'**
+* *Prompt Addition:* "Do not state that a property 'forces' an outcome or that an element 'acts as an identity' without providing the explicit, uninterrupted chain of substitutions that derive it. If you discover a property like $x*x = x$, you must derive it syntactically, and then continue substituting until LHS exactly matches RHS."
+
+**3. Force Deep, Exploratory Expansion (Overcoming the Depth Limit)**
+* *Prompt Addition:* "Expect the proof to require deep chaining (10-20 steps). If you are stuck, do not switch to English prose. Instead, try expanding the target equation backwards, or substitute a complex term (like the entire LHS of the axiom) into a single variable of your current equation. Force inner structures to collapse by aligning variables."
+
+**4. Introduce a "Stuck State" Protocol**
+* *Prompt Addition:* "If you find yourself stuck in a loop of expanding and shrinking the same term, break the loop by introducing a completely new variable from the axiom into your expression. Use 'bridge terms' to connect the source and target, purely through equational logic."
+
+--- Batch 21 Analysis ---
+Based on the meta-analysis of the provided failed proof searches, here is a breakdown of why the models "give up" or fail, followed by a Persistence Strategy to improve their performance.
+
+### 1. Search Depth: Premature Abandonment
+The model’s actual equational search depth in these failures is virtually **zero to two steps**. Instead of deeply exploring syntactic substitutions, the model abandons algebraic manipulation almost immediately. The moment it encounters a complex axiom where variables are asymmetric (e.g., $x$ is alone on one side, while $y$ and $z$ appear on the other), it stops searching for term-rewriting paths and switches to hallucinating high-level meta-mathematical proofs. 
+
+### 2. Missing Links: Ignoring "Dummy" Variable Substitutions
+Because the model stops performing algebraic operations, it completely misses the unobvious substitutions required to unlock the proofs. Specifically:
+* **Self-Substitution:** It overlooks substituting the entire axiom into the "dummy variables" (the variables like $y$ and $z$ that do not dictate the output of the evaluated side). 
+* **Overlapping terms:** It fails to build intermediate lemmas by substituting complex terms (e.g., $y \to (x * w)$) that would cause the inner terms of Equation 1 to cancel out or mirror Equation 2.
+
+### 3. Local Optima: The "Triviality" Trap (Semantic Local Optima)
+This is the most prominent failure mode. The model repeatedly gets trapped in a **Semantic Local Optimum**. 
+* When it sees a highly constrained equation like `x = (y * x) * (x * (x * z))`, it notices that the right-hand side always evaluates to $x$ regardless of $y$ and $z$. 
+* Instead of using this flexibility to substitute cleverly, it incorrectly deduces that this rigidity forces the magma to be a **singleton (trivial magma, $|M|=1$)** or a specific known structure (e.g., "Boolean group" in `hard_0114`).
+* It then gets stuck hallucinating a verbose, flawed mathematical proof that the set has only one element (e.g., citing "bijective left translations" or "constant columns"), because in a 1-element set, *all* equations are trivially true. 
+
+### 4. Complexity Bias: The "Shortcut" Surrender
+The model exhibits a strong complexity bias. When Equation 2 looks structurally disconnected or topologically reversed compared to Equation 1, the model perceives the transformation distance as "too far." To bypass this complexity, it takes a logical shortcut: **If I can prove the algebraic structure only has one element, I don't need to do the algebra.** This premature surrender prevents it from even attempting the necessary sequence of expansions and reductions.
+
+---
+
+### 🌟 Persistence Strategy (Prompt Engineering Guidelines)
+
+To force the model to persist through the search space and avoid these failure modes, the prompt should be updated with the following instructions:
+
+**1. Ban Semantic and Cardinality Shortcuts (Strict Syntactic Rule):**
+> *"Do not attempt to prove that the magma is a singleton (size 1), trivial, or belongs to a specific group family (e.g., Boolean groups). Do not use set-theoretic arguments, mapping properties (surjectivity/injectivity), or cardinality claims. Your proof must be **100% syntactic and equational**, relying solely on term rewriting, variable substitution, and structural induction."*
+
+**2. Exploit "Dummy" Variables:**
+> *"If an axiom has variables on one side that do not appear on the other (e.g., $y$ and $z$ in $x = (y * x) * (x * z)$), treat this as an advantage. You can substitute **any highly complex term** into $y$ and $z$ without altering the opposite side. Use this to intentionally create overlapping sub-terms that match pieces of your target equation."*
+
+**3. Enforce Step-by-Step Substitution Chaining (Search Depth Expansion):**
+> *"Do not skip steps. Do not claim 'by sequential substitutions.' You must build intermediate identities (Lemmas) by strictly applying the axiom. Format every exploratory step as: `Substitute [var] -> [term] into [Equation/Lemma] => [New Lemma]`. Continue exploring combinations for at least 10-15 steps before evaluating if a path is a dead end."*
+
+**4. Bridge the Complexity Gap (Working Backwards):**
+> *"If the target equation looks completely different from the source, do not give up. Try working backwards: look at the target equation and ask, 'What substitution into the primary axiom would generate the outermost structure of this target?'"*
+
+--- Batch 22 Analysis ---
+Based on the analysis of the provided failed proof searches (FN), here is the meta-analysis and the resulting Persistence Strategy.
+
+### Meta-Analysis of Failures
+
+**1. Search Depth and Premature Convergence:**
+Models consistently stopped exploring after a single layer of derivation (often Step 3 or 4). In almost all cases (`hard_0032`, `hard_0045`, `hard_0057`), the model identified a "strong constraint" and immediately jumped to a radical structural simplification (e.g., "the magma must be trivial" or "the operation is a constant permutation"). They ceased searching for a step-by-step equational proof once they convinced themselves of a global property that was often slightly incorrect or too broad.
+
+**2. Missing Links (The "Unobvious" Substitutions):**
+The models failed to recognize "Substitution chains." For example:
+*   **Variable Shadowing:** In `hard_0029`, models missed that substituting a complex term into itself (e.g., replacing $x$ with the entire RHS of $Eq1$) can simplify cross-terms.
+*   **Identity Extraction:** Models failed to find specific values for $y$ or $z$ (like setting $y = x*x$) that might reveal a hidden identity element ($e$) or a property like commutativity.
+*   **Associativity-like shifts:** In `hard_0166`, the model assumed a Boolean group structure because it couldn't find the specific sequence of substitutions to move parentheses.
+
+**3. Local Optima and Semantic Loops:**
+Models frequently got stuck in "Structural Loops." Instead of transforming the equations, they transformed the *interpretation* of the equations. In `hard_0057` and `hard_0180`, the models repeatedly applied the "Left Translation is a Permutation" logic. While this is a powerful tool, they used it as a destination rather than a vehicle, looping through functional properties ($L_y$ is bijective) instead of reaching the target expression $Eq2$.
+
+**4. Complexity Bias:**
+There is a clear "Triviality Bias." If $Eq1$ looks complex ($x = \text{nested terms}$), models conclude the magma is "too constrained to exist" and declare it trivial ($|M|=1$). This allows them to claim $Eq2$ is TRUE without actually performing the algebraic derivation. This is a shortcut that fails when a non-trivial magma exists but requires a 15+ step proof.
+
+---
+
+### Persistence Strategy: "The Divergent Transformation Protocol"
+
+To encourage models to find valid proofs in these "False Negative" scenarios, the prompt should be modified to include the following instructions:
+
+**1. Mandatory "Search Breadth" Phase:**
+> "Before concluding that the magma is trivial or follows a standard group structure, perform 5 distinct 'blind substitutions.' Explicitly substitute $x \leftarrow (x*x)$, $y \leftarrow x$, and $z \leftarrow (y*x)$ into Equation 1. Document the resulting expanded terms before attempting to simplify."
+
+**2. Prohibition of "Triviality Shortcuts":**
+> "Do not assume the magma is trivial ($|M|=1$) or a known group (e.g., Boolean group) unless you can prove $x=y$ using only equational substitution. If you suspect a structural property (like bijectivity of $L_y$), you must still provide the explicit string-replacement path from the LHS of Equation 2 to its RHS."
+
+**3. The "Mid-Point" Target Strategy:**
+> "If the transformation from $Eq1$ to $Eq2$ feels stalled, work backward. Start with the RHS of Equation 2 and apply $Eq1$ in reverse (expansion). Aim to meet your forward derivation at a common complex term. Often, the link is a term of higher complexity than either starting equation."
+
+**4. Explicit "Loop-Breaking" Instruction:**
+> "If your derivation reaches a point where you are repeatedly applying the same identity (e.g., $x*x = e$), stop. Attempt a substitution using a variable not currently present in your local term (e.g., introduce a 'w' or 'z' from the axiom) to break the symmetry."
+
+**5. Verification of Counter-Intuitive Paths:**
+> "In equational theories, the shortest proof often requires 'increasing' the term length significantly before it collapses. Do not give up if the term length exceeds 20 characters; continue exploring expansions for at least 3 more steps."
+
+--- Batch 23 Analysis ---
+Based on the dataset of failed model responses, there is a glaring, uniform failure mode across almost all cases: **The model completely abandons pure syntactic equational rewriting and hallucinates semantic/model-theoretic "shortcuts."** 
+
+When the model cannot immediately see how to transform `Equation 1` into `Equation 2`, it acts like a frustrated human mathematician—it stops substituting terms and instead tries to invent global structural properties about the magma to force the proof to work. 
+
+Here is the detailed meta-analysis based on your requirements, followed by an actionable Persistence Strategy.
+
+### 1. Search Depth: Premature Abandonment
+The model's actual equational search depth is remarkably shallow (usually 0 to 2 steps). If substituting basic variables (like $y = x$) does not immediately yield a recognizable pattern, the search halts. 
+* **Evidence:** In `hard_0137` and `hard_0134`, the model returns completely empty responses. In `hard_0120` and `hard_0129`, it cuts off mid-sentence. In the rest, it performs exactly one or two rewrites before immediately switching to English-language generalizations, entirely bypassing the deep search tree required for equational proofs.
+
+### 2. Missing Links: Failure to Use Compound Substitutions
+The model consistently overlooks "unobvious" compound substitutions. It limits itself to simple variable-to-variable replacements ($x \to y$, $z \to x$).
+* **Evidence:** The proofs require substituting a variable with an entirely new sub-tree (e.g., $x \to (y * z)$ or $x \to (x * x)$) to create matching structures. Because the model lacks an internal mechanism to guess these larger structural substitutions, it misses the critical lemmas needed to bridge the source and the target.
+
+### 3. Local Optima: The "Term Bloat" Trap
+In automated theorem proving, terms must often become massively expanded and deeply nested before they can be canceled out or collapsed. Large Language Models possess an inherent bias toward keeping outputs concise and readable. 
+* **Evidence:** The models refuse to generate highly nested strings. Rather than expanding terms through valid substitutions (which pushes the model into visually complex "term bloat"), the model gets stuck in the local optimum of keeping equations short, ultimately giving up on the purely algebraic path.
+
+### 4. Complexity Bias: Hallucinating Structural Shortcuts
+When the target equation looks too structurally disjointed from the source equation, the model assumes a syntactic proof is impossible. To resolve this, it confidently hallucinates that `Equation 1` forces the algebraic structure to be degenerate or constrained.
+* **Evidence:** 
+  * `hard_0026`: Hallucinates that all valid magmas are "left/right-projection magmas."
+  * `hard_0076`: Invents a proof relying on "bijections" and "permutations."
+  * `hard_0151` & `hard_0014`: Claims the equation forces the magma to be "trivial" (size 1) or resorts to finite-model checking.
+  * `hard_0001`: Claims multiplication "depends only on the second operand."
+  * `hard_0129`: Assumes the magma is a "vector space."
+  *(None of these are valid purely equational deductions, which is why the proofs fail verification).*
+
+---
+
+### 💡 Persistence Strategy (Prompt Engineering Guidelines)
+
+To prevent the model from giving up or hallucinating, your prompt must force the model to behave like a strict syntactic rewrite engine. Use the following strategies in your system prompt:
+
+**1. Explicitly Ban Semantic & Structural Arguments**
+> *"You are a strict equational rewrite engine. You may ONLY use pure syntactic term substitution. Do NOT use semantic arguments, model theory, bijections, permutations, finite model exhaustive checks, or assume the magma is trivial/degenerate. Your proof must be a continuous chain of equalities."*
+
+**2. Mandate 'Term Bloat' (Overcoming Local Optima)**
+> *"Do not be afraid of generating extremely large, deeply nested expressions. In equational logic, terms must often be significantly expanded before they can be simplified. Push through the complexity."*
+
+**3. Force Compound Substitutions (Finding Missing Links)**
+> *"If simple substitutions (like $y = x$) do not work, you must deliberately attempt compound structural substitutions. Try replacing a single variable with a nested term, such as $x \to (y * z)$, $x \to (x * x)$, or $x \to ((x * y) * z)$, to unlock new intermediate lemmas."*
+
+**4. Impose a Strict Step-by-Step Format**
+Require a format that prevents the model from skipping steps or writing paragraphs of hand-wavy text.
+> *"Format your proof exactly like this, step-by-step:*
+> * **Lemma 1:** [Equation]*
+> * **Substitution:** [Explicitly state what you substitute, e.g., 'Substitute $x \to (x * y)$ into Lemma 1']*
+> * **Result:** [The newly generated equation]*"
+
+**5. Prompt Bidirectional Search (Working Backwards)**
+> *"If you are stuck moving forward from Equation 1, look at Equation 2. Identify the nested structures inside Equation 2 and work backwards. What compound substitution into Equation 1 would generate the outer shell of Equation 2?"*
+
+--- Batch 24 Analysis ---
+Based on the provided dataset of failed proof searches, here is a meta-analysis of why the models fail or "give up," followed by a Persistence Strategy to improve prompt design.
+
+### Meta-Analysis of Failed Proof Searches
+
+**1. Search Depth: Premature Abandonment (0-1 Steps)**
+The models exhibit an incredibly shallow search depth for actual equational rewrites. They typically perform either zero substitution steps (yielding blank responses like in `hard_0157` and `hard_0071` or appealing to "established results" as in `hard_0125`) or exactly one step (as in `hard_0008`). If a direct, single-step substitution does not immediately yield the target equation, the model abandons syntactic search entirely.
+
+**2. Missing Links: Syntax Tree Tracking Failures**
+When the model *does* attempt a substitution, it fails to rigorously track the Abstract Syntax Tree (AST). In `hard_0008`, the model substitutes $y \leftarrow x$ and $z \leftarrow (x*x)$, but hallucinated the resulting term. It collapsed $x * (x * (...))$ into $x * (...)$ to force a match with Equation 2. The model overlooks the need for intermediate bridging lemmas (e.g., proving idempotence $x*x = x$ or finding a way to cancel outer terms) that would resolve these "off-by-one" structural mismatches.
+
+**3. Local Optima: The "Semantic/Triviality" Trap**
+Instead of getting stuck in a loop of expanding and shrinking equations, the models get stuck in a **semantic local optimum**. When they cannot find a syntactic path, they default to hallucinating semantic properties about the magma itself. 
+* In `hard_0047`, `hard_0097`, and `hard_0125`, the models falsely argue that the equations force the magma to be "trivial" or a "singleton."
+* In `hard_0184` and `hard_0068`, they hallucinate that the equations force the operation to depend on only one operand ($a*b = g(b)$) or force squares to be constant ($x*x = y*y$). 
+They optimize for "sounding mathematically convincing" using fake Cayley table arguments or set theory, entirely bypassing the actual equational mechanics.
+
+**4. Complexity Bias: Surrendering to Nesting**
+The heavy nesting and asymmetry of the variables (e.g., $x = y * ((y * x) * (x * y))$) intimidate the model. The model perceives the gap between Eq1 and Eq2 as structurally insurmountable through simple term rewriting. This bias is what triggers the shift from syntactic manipulation (which is correct but tedious) to semantic meta-proofs (which are easy to write but logically invalid in this context). 
+
+---
+
+### Persistence Strategy (Prompting Recommendations)
+
+To prevent the model from giving up or hallucinating, the prompt must explicitly constrain its behavior and redefine how it searches for a proof.
+
+**1. Ban Semantic "Meta-Proofs" (Force Syntactic Rewriting)**
+* **Instruction:** *"Do not use semantic arguments, Cayley tables, singleton/trivial magma assumptions, set theory, or 'known identities.' All proofs must be strictly syntactic. You may only prove the implication by applying direct equational substitutions and structural rewrites."*
+
+**2. Enforce Strict AST Tracking and Step-by-Step Expansion**
+* **Instruction:** *"For every step, clearly state the substitution map (e.g., substitute $x \leftarrow (y*z)$). Then, write out the exact unsimplified string that results. Do not skip levels of nesting or silently collapse terms."*
+
+**3. Mandate Intermediate Lemma Generation**
+* **Instruction:** *"If the target equation is highly complex, do not try to reach it in one step. Instead, spend your first 3-5 steps generating intermediate lemmas. Try to isolate variables, find expressions for $x*x$, or see what happens when you substitute $y \leftarrow x$ and $z \leftarrow x$. Store these short identities to use later."*
+
+**4. Introduce a "Minimum Step" Requirement**
+* **Instruction:** *"You must perform and explicitly write out at least 4 distinct equational substitution attempts before evaluating whether the proof is impossible. If you reach a dead end, backtrack to Equation 1 and try a completely different substitution map (e.g., swapping the roles of variables)."* 
+
+**5. Self-Correction Prompts for "Off-by-One" Errors**
+* **Instruction:** *"If your generated term looks similar to the target equation but has an extra operation (e.g., $x * (Target)$ instead of $Target$), do not declare the proof complete. Acknowledge the mismatch, and search your intermediate lemmas for a rule that allows you to absorb or cancel the extra term."*
+
+--- Batch 25 Analysis ---
+Based on the provided dataset of failed proof searches, here is a meta-analysis of why the models failed to find valid proofs and hallucinated reasoning, followed by a Persistence Strategy to improve prompt engineering.
+
+### 1. Search Depth
+The models exhibit an overwhelmingly **shallow search depth**, typically giving up on purely syntactic algebraic manipulation after just **1 to 3 steps**. When basic substitutions (like setting $x=y$ or $z=x$) do not immediately yield the target equation or an obvious simplification, the model abruptly halts its equational search. Instead of exploring deeper nested substitutions, it pivots to text-based "semantic reasoning" or entirely hallucinated algebraic properties to bridge the gap. In `hard_0085`, the model simply gives up and outputs an empty response rather than attempting deeper tree exploration.
+
+### 2. Missing Links
+The models consistently overlook **"expansive substitutions" and sub-term targeting**. 
+* **Overlooking Complex Substitutions:** The models fail to substitute single variables in Equation 1 with complex expressions derived from Equation 2. For instance, in `hard_0189`/`hard_0137`, the model realizes that `(y * (z * y)) * y` acts as a left identity, but misses the unobvious step of substituting $z$ with the complex term $(z * w)$ to construct the exact structure of Equation 2. 
+* **Lack of Backwards Chaining:** The models rarely attempt to start from Equation 2 and apply Equation 1 *backwards* (expanding terms) to find a meeting point. They only attempt to shrink Equation 1 forwards.
+
+### 3. Local Optima
+The models frequently get trapped in **semantic local optima**. Once a model discovers a partial, abstract property about the magma, it abandons formal step-by-step logic and tries to "talk" its way to the solution using higher-level math concepts.
+* In `hard_0080` and `hard_0095`, the model notices expressions evaluating independently of certain variables and gets stuck talking about "right-constant elements," "sets $L_c$," and "columns in a multiplication table."
+* In `hard_0068`, it gets distracted by mapping properties, claiming "left-translation by $x$ is surjective."
+Instead of using these insights to guide *which* syntactic substitutions to make next, the model uses them as an excuse to stop doing algebra, trapping itself in unprovable, hand-wavy logic.
+
+### 4. Complexity Bias
+The models suffer from severe **complexity bias**. When the target equation looks structurally dissimilar to the source equation (e.g., drastic differences in depth, variable count, or symmetry), the model assumes the algebraic distance is too vast to traverse step-by-step. 
+* **The "Trivial Magma" Escape Hatch:** To bypass the complexity, the model routinely hallucinates that Equation 1 forces a global collapse of the system. In `hard_0136`, it claims the magma *must* be a "singleton." In `hard_0137` and `hard_0022`, it falsely claims the magma is "trivial" or perfectly "idempotent." By claiming the universe of the problem is trivial, the model gives itself permission to declare Equation 2 true without doing the math.
+
+---
+
+### 🌟 Persistence Strategy (Prompt Engineering Guidelines)
+
+To prevent the model from giving up or hallucinating, the prompt must explicitly force the model to behave as a **strict symbolic manipulator** rather than a semantic mathematical reasoner. Incorporate the following directives into the system prompt:
+
+1. **Ban Semantic & Structural "Escape Words":**
+   * *Prompt rule:* "You are strictly forbidden from using structural arguments. Do not claim the magma is a 'singleton', 'trivial', 'commutative', or 'idempotent' unless you can prove it purely through an unbroken chain of equalities. Do not use concepts like 'surjective', 'constant functions', or 'images of sets'."
+
+2. **Mandate Strict Equational Chaining (Format Enforcement):**
+   * *Prompt rule:* "Your proof must be a strict, unbroken chain of syntactic substitutions. Every step must be formatted as `Expression A = Expression B [by substituting x=..., y=... into Eq X]`. Do not use prose to skip steps."
+
+3. **Force Deep & Expansive Substitutions (Overcoming Shallow Search):**
+   * *Prompt rule:* "If you are stuck, DO NOT give up. Force yourself to explore 'expansive substitutions'. Take a sub-expression from the target equation (Eq 2) and substitute it entirely in place of a single variable (e.g., $x$ or $z$) in Equation 1. Observe how the term expands and look for cancellations."
+
+4. **Require Bidirectional Exploration (Overcoming Missing Links):**
+   * *Prompt rule:* "If forward substitution from Equation 1 stalls after 3 steps, you must pivot. Start with Equation 2, and identify sub-terms that can be expanded by applying Equation 1 *in reverse*. Attempt to meet your forward derivations in the middle."
+
+5. **Iterative Lemma Generation:**
+   * *Prompt rule:* "Do not try to prove Equation 2 in one giant leap. First, define intermediate algebraic goals (Lemmas). For example, try to prove that $x*x = y*y$, or that a specific term absorbs another. Prove these lemmas using purely equational steps before moving to the final target."
+
+--- Batch 26 Analysis ---
+Based on the provided dataset of failed proof searches, here is a meta-analysis of why the models fail to find valid equational proofs and instead output false negatives (or hallucinate invalid positive proofs), followed by a targeted **Persistence Strategy** for prompting.
+
+### Meta-Analysis of Failed Proof Searches
+
+**1. Search Depth: Abandoning the Search Tree at Depth 0**
+The models almost never fail deep into a proof search; rather, they completely bypass syntactic equational reasoning. Their effective syntactic search depth is zero. When faced with the problem, they immediately pivot to semantic, model-theoretic reasoning. In the rare cases where they attempt a substitution (e.g., `hard_0187` setting $z=x$), they perform 1-2 trivial steps before giving up and using "handwaving" phrases like *"Through a series of substitutions... it can be derived"* (`hard_0074`) or *"Exhaustive analysis... confirms"* (`hard_0187`).
+
+**2. Missing Links: Overlooking Complex Substitutions and Unification**
+Because the models abandon step-by-step term rewriting, they entirely miss the core mechanism of equational proofs: **unification via complex term substitution**. Instead of trying to substitute a compound term (e.g., $x \to (y * z)$) to bridge the structural gap between `eq1` and `eq2`, they rely on global algebraic assumptions. For instance, in `hard_0005` and `hard_0073`, the models attempt to invent mapping functions ($L_z(t)$, $y \backslash x$) rather than simply matching the outer structure of `eq1` to a subterm of `eq2`. 
+
+**3. Local Optima: The "Semantic Trap"**
+Instead of getting stuck in a loop of expanding and shrinking terms, the models get trapped in **hallucinated structural properties**. Once a model identifies a superficial feature of the equation (such as a variable appearing isolated on one side), it gets stuck trying to prove a global semantic property that does not exist. Examples include:
+*   Hallucinating that the magma must be an "elementary abelian 2-group" (`hard_0005`).
+*   Hallucinating that the equation implies a "Steiner quasigroup" (`hard_0073`).
+*   Inventing non-existent bijections and involutions (`hard_0029`).
+Once trapped in these semantic local optima, the model spends all its reasoning tokens justifying these false properties rather than doing actual algebra. This also causes generation cut-offs (`hard_0009`, `hard_0036`) as the model exhausts its context window wandering through invalid model theory.
+
+**4. Complexity Bias: Premature Assumption of "Triviality"**
+The models exhibit extreme complexity bias when the source and target equations look structurally disparate or have mismatched variable sets. If `eq1` has variables that do not appear on the other side of the equals sign (e.g., `hard_0149` where LHS is $x$ and RHS contains $y$ and $z$), the model immediately concludes that the rule is "over-restrictive." Instead of trying to resolve this via substitution, it prematurely concludes that the equation forces the domain to collapse (e.g., *"the only model that satisfies Equation 1 is the trivial magma"* in `hard_0149`, `hard_0187`, and `hard_0031`). It uses this "triviality" as a shortcut to claim `eq2` is true without proving it.
+
+---
+
+### Persistence Strategy: Prompting for "Non-Obvious" Transformations
+
+To force the model to explore valid, non-obvious transformation paths and stop giving up, the prompt must strictly forbid semantic reasoning and heavily enforce purely syntactic term-rewriting. 
+
+Incorporate the following directives into the system prompt:
+
+**1. Enforce Strictly Syntactic Proofs (Ban Model Theory)**
+*   **Directive:** *"You must prove the implication using ONLY purely syntactic, step-by-step term rewriting (equational substitutions). You are STRICTLY FORBIDDEN from using model theory, semantic arguments, or discussing global algebraic properties. Do not mention 'trivial magmas', 'singletons', 'groups', 'quasigroups', 'injectivity', 'surjectivity', or 'constant right multiplication'."*
+
+**2. Ban "Handwaving" and Forced Step-by-Step Framing**
+*   **Directive:** *"You must not skip steps. Phrases like 'through a series of substitutions', 'it can be shown', or 'exhaustively' are prohibited. Every step must be an explicit equational substitution."*
+*   **Formatting Requirement:** Force the model to use a rigid structure for every step to keep it anchored to the search tree:
+    *   `[Step 1] Substitute x -> [term], y -> [term] into Eq1.`
+    *   `[Result] [Intermediate Equation]`
+
+**3. Encourage "Ugly" Substitutions (Counter Complexity Bias)**
+*   **Directive:** *"Do not give up if the intermediate equations become highly complex, nested, or longer than the target equation. Proofs often require 'term inflation' before they can be simplified. Deliberately try substituting complex compound terms (e.g., $x \to (y*z)$ or $x \to (x*x)$) into variables to match the nesting depth of the target equation."*
+
+**4. Goal-Oriented Subterm Unification (Break Local Optima)**
+*   **Directive:** *"If you are stuck, look at the innermost nested subterm of the TARGET equation (`eq2`). Find a way to apply the SOURCE equation (`eq1`) directly to that subterm. Ask yourself: 'What exact compound terms do I need to substitute into the variables of Eq1 so that its left-hand side perfectly matches the subterm in Eq2?'"*
+
+**5. Explicit Backtracking Protocol**
+*   **Directive:** *"If a substitution path results in an equation that cannot be manipulated further to look like the target, do not write a fake conclusion. Explicitly write `[Backtrack]` and try substituting a entirely different variable arrangement (e.g., swapping the roles of variables or self-substituting a variable into all slots)."*
+
+--- Batch 27 Analysis ---
+Based on the provided dataset, here is a meta-analysis of why the models fail to produce valid proofs, followed by a Persistence Strategy to improve prompt engineering.
+
+### **Meta-Analysis of Failed Proof Searches (FN)**
+
+**1. Search Depth: Premature Semantic Pivot**
+*   **Observation:** The model’s syntactic search depth is incredibly shallow, typically halting after just **1 to 2 substitution steps**. 
+*   **Why it stops:** The model performs basic variable unifications (e.g., substituting $y=x$ or $z=x$) and immediately observes that the equation highly restricts the structure. At this exact point, it stops searching for equational rewrites and pivots entirely to meta-mathematical or semantic reasoning (e.g., testing magmas of size 2, discussing translation maps $L_x$, or analyzing right ideals).
+
+**2. Missing Links: Bridge Terms and Self-Substitution**
+*   **Observation:** The model consistently overlooks the concept of **deep self-substitution**.
+*   **The Unobvious Step:** To prove that an "absorbing" equation forces all elements to be equal ($x=y$), the model must substitute the entire axiom *into its own variables* to build a massive "bridge term." For example, if $x = f(x, y)$, the missing link is often substituting $y = f(z, w)$ to create $x = f(x, f(z, w))$ and cross-reducing. The model recognizes that variables get absorbed, but it fails to physically write out the substitutions that syntactically prove this absorption.
+
+**3. Local Optima: The "Semantic Trap"**
+*   **Observation:** The model gets trapped in a semantic local optimum. 
+*   **How it loops:** Once the model deduces logically that the axiom forces the magma to be trivial ($|M|=1$) or a right-zero semigroup, it considers the problem "solved." It loops around explaining *why* the structure collapses using human-level math concepts (surjectivity, singletons, bijectivity, permutations) instead of doing the mechanical work of generating a strict chain of formal syntactic rewrites. It equates "knowing it is true" with "having proved it equationally."
+
+**4. Complexity Bias: Intimidation by Asymmetry**
+*   **Observation:** The model suffers from severe complexity bias when faced with highly asymmetric equations (where one side is just $x$ and the other is a deeply nested tree containing arbitrary variables like $y$ and $z$).
+*   **Premature Give-up:** Because the axiom destroys information (by absorbing $y$ and $z$), the model assumes that blindly expanding terms will just lead to an uncontrollable, messy string of variables. It mistakenly believes that an equational path is practically intractable, using the phrase "extremely restrictive" as an excuse to bypass strict symbolic manipulation in favor of English prose.
+
+---
+
+### **Output: Persistence Strategy (Prompting Directives)**
+
+To prevent the model from "giving up" and forcing it to find the non-obvious transformation paths, the prompt must explicitly ban semantic escapes and enforce syntactic grit. Append the following constraints to the system prompt:
+
+**1. Ban Meta-Reasoning and Semantic Escapes:**
+> *"Do not use model-theoretic arguments, set theory, or finite magma exhaustive checks (e.g., checking magmas of size 2 or 3). Arguments concluding that 'the magma must be trivial' ($|M|=1$), or using left/right translation maps ($L_x, R_x$), permutations, and surjectivity are STRICTLY INVALID. Your proof must be 100% syntactic."*
+
+**2. Force Strict Equational Chains:**
+> *"Every proof must be an unbroken chain of equalities: $T_1 = T_2 = T_3 = \dots = T_n$. You may not use English prose to jump between steps. For every equality, you must explicitly declare the substitution used (e.g., `[Apply Axiom 1: x -> A, y -> B]`)."*
+
+**3. Strategy Injection: Deep Self-Substitution (The "Bridge" Tactic):**
+> *"If the target equation looks too different or simpler than your current term, do not give up. Use the **Bridge Tactic**: substitute the entire axiom into one of the free variables of your current expression. This will temporarily explode the complexity of the term, but it is necessary to align the variables so they can cancel out later."*
+
+**4. Mandate Sub-Goal Generation for Absorbing Equations:**
+> *"If you suspect an equation forces all elements to be equal (a trivial magma), you must prove $x = y$ purely equationally. Set a sub-goal to construct a complex intermediate term that can be reduced to $x$ on one side and $y$ on the other. Only once you have syntactically derived $x = y$ can you substitute it into the target equation."*
+
+--- Batch 28 Analysis ---
+Based on the provided dataset of failed and hallucinated proof attempts, here is a meta-analysis of why the models "give up" on equational reasoning, followed by a **Persistence Strategy** for improved prompting. 
+
+### Meta-Analysis of Model Failures
+
+In almost all the provided cases, the model answers `TRUE` but entirely fails to provide a valid equational proof (or fails to generate a response at all). Instead of using strict algebraic substitutions, the model abandons the search tree and hallucinates semantic, model-theoretic proofs (e.g., claiming the magma is a singleton, relying on affine spaces over GF(2), or using exhaustive checks on domains of size 2). 
+
+Here is the breakdown of why the models fail:
+
+**1. Search Depth (Premature Abandonment):**
+The model effectively stops syntactic exploration after just **1 to 3 steps**. In equational logic, if a direct substitution does not immediately yield a recognizable pattern or cancellation, the search tree explodes. Unable to manage a search depth of 5+ steps in its context window, the model "bails out" and attempts to bypass the derivation by making global, unverified semantic claims (e.g., *"structural consistency... ensures equality"*, or *"forces the magma to be trivial"*).
+
+**2. Missing Links (Lack of Sub-term Paramodulation):**
+The model overlooks the most crucial mechanism in equational theorem proving: **paramodulation** (substituting into a *sub-term* of an expression rather than the whole expression). Furthermore, it fails to aim for "missing link" lemmas. Instead of trying to prove an intermediate property first (like idempotence $x*x = x$ or a zero-element property $x*y = z*w$), it tries to transform Equation 1 directly into Equation 2 in one continuous chain, which is often mathematically impossible without lemmas.
+
+**3. Local Optima (The Expansion Trap):**
+Many of the axioms (like $x = ((y * x) * z) * (z * y)$) have a single variable on one side and a complex tree on the other. The model gets trapped in an **expansion loop**—it repeatedly replaces $x$ with the larger term (Left-to-Right application), creating massive, unwieldy strings of variables. When it cannot find a way to "shrink" these massive terms back down (Right-to-Left application), it gets stuck in a local optimum of complexity, assumes the algebraic path is a dead end, and hallucinates a structural argument instead.
+
+**4. Complexity Bias (The "Triviality" Assumption):**
+The models exhibit a massive complexity bias. When the target equation looks completely different in structure or variable count from the source (e.g., *hard_0136*: `x = ((y * x) * x) * (x * z)` implying `x * y = (z * z) * z`), the model heuristically assumes that such a leap is only possible if the algebraic structure is trivial. It immediately decides to prove that the magma is a **singleton** ($|M|=1$), a **left-zero** ($x*y=x$), or a **projection**. By biasing toward proving "the whole system collapses," it blinds itself to the clever, non-obvious variable unifications that actually solve the problem.
+
+---
+
+### The Persistence Strategy (Prompting Guidelines)
+
+To prevent the model from giving up and hallucinating semantic arguments, your system prompt should enforce a strict "syntactic persistence" framework.
+
+**1. Mandate Strict Syntactic Rewriting (Ban Semantics)**
+* **Prompt Rule:** "You are a strict equational theorem prover. You must use ONLY syntactic term rewriting (substitution and paramodulation). DO NOT use semantic arguments, finite-model checking, affine spaces, or claim the magma is a singleton/trivial. If you cannot find the proof, state 'FALSE' rather than hallucinating model-theoretic properties."
+
+**2. Enforce Intermediate Lemma Generation (Bridging the Gap)**
+* **Prompt Rule:** "Do not attempt to derive Equation 2 from Equation 1 directly in a single chain. Instead, spend your first 3-5 steps deriving intermediate lemmas. Systematically test substituting $x$ for $y$, or $x*x$ for $y$, to discover basic properties such as idempotence ($x*x=x$), commutativity, or absorption."
+
+**3. Sub-term Focus and "Shrinking" (Avoiding Expansion Loops)**
+* **Prompt Rule:** "Avoid infinitely expanding terms. For every step where you expand a variable into a larger term, you must actively search for a way to apply the axiom in reverse (Right-to-Left) to collapse and shrink sub-terms. Look for inner expressions that match the shape of the axiom's right-hand side."
+
+**4. Iterative Deepening & Variable Unification (Pushing the Search Depth)**
+* **Prompt Rule:** "Perform an iterative search. 
+    * *Depth 1:* Apply the axiom to itself. 
+    * *Depth 2:* Apply the resulting equations to each other.
+    * Use clever variable unification: try substituting complex terms (like $y*z$) for a single variable $x$ in the axiom to force cancellations. Track your exact depth and do not give up before Depth 5."
+
+**5. Token Management via Aliasing**
+* **Prompt Rule:** "To avoid getting lost in massive expressions, use temporary aliases for repeating sub-terms (e.g., Let $A = x*y$. Therefore $x = A * (A * z)$). Expand the aliases only when a clear cancellation opportunity arises."
+
+--- Batch 29 Analysis ---
+Based on the analysis of the provided failed proof searches (False Negatives), the following meta-analysis identifies the patterns that lead models to conclude "TRUE" incorrectly or fail to find a valid counter-proof.
+
+### 1. Search Depth: The "Triviality" Trap
+Models consistently stopped their search after 2–4 steps of substitution. Instead of exploring deeper algebraic transformations, they hit a "complexity ceiling" and defaulted to a **Triviality Hypothesis**. They prematurely concluded that the source equation (Eq1) was so restrictive that it forced the magma to have only one element ($|M|=1$). Once this assumption was made, they stopped looking for counterexamples or complex non-trivial proofs.
+
+### 2. Missing Links: Unobvious Substitutions
+The models consistently overlooked several key transformation types:
+*   **Dual-Variable Substitution:** In `hard_0146`, models failed to substitute the entire expression of $x$ back into itself or use $y$ and $z$ as functions of $x$.
+*   **Axiom Re-application:** In `hard_0015`, the model correctly identified that $L_x$ is constant on a specific set but failed to consider cases where the magma is non-associative and the "constant" value might shift depending on the nesting.
+*   **Non-Trivial Finite Models:** Models frequently claimed "exhaustive search of size 2 magmas" failed, when in reality, a size 3 or size 4 counterexample often exists for these specific equations.
+
+### 3. Local Optima: The Loop of Simplification
+Models often got stuck in a **Reduction Loop**:
+*   They simplified $x * (x * x)$ to $x$ or assumed $x * x = e$ (identity) without justification (e.g., in `hard_0181`). 
+*   Once they reached a "cleaner" looking version of the equation, they stopped, assuming any further transformation would only increase complexity. They favored "shrinking" terms over "expanding" them, even though expansion is often necessary to bridge the gap between Eq1 and Eq2.
+
+### 4. Complexity Bias: The "Strong Identity" Heuristic
+There is a clear bias toward labeling equations with multiple nested variables (like `x = (y * x) * (x * (x * z))`) as "Too Strong to be Non-Trivial." The models assumed that because the variables $y$ and $z$ are "decoupled" from the result $x$, the structure must collapse. This bias prevents the model from considering **Permutational Magmas** or **Quasigroups** where such balances are maintained without collapse.
+
+---
+
+### Persistence Strategy: "The Divergent Transformation Prompt"
+
+To encourage models to find the "non-obvious" path and avoid the triviality trap, the prompt should be structured to enforce **Divergent Thinking**:
+
+1.  **Anti-Triviality Constraint:** 
+    *"Before concluding that Equation 1 implies Equation 2, explicitly attempt to construct a non-trivial counterexample of size 3 or 4. Do not assume $|M|=1$ just because an identity appears strong."*
+
+2.  **Expansion Mandate:** 
+    *"If the target (Eq2) is more complex than the source (Eq1), you must use 'Expansion Substitutions.' Replace a variable $x$ in Eq1 with the entire RHS of Eq1. Do this at least three levels deep before concluding a proof is impossible."*
+
+3.  **Substitution Diversity:** 
+    *"Avoid 'Identity Bias.' Do not assume $x*x=x$ or that a constant element exists unless explicitly derived. Try substitutions where $y$ is set to a complex term (e.g., $y = z * x$) rather than just setting all variables to $x$."*
+
+4.  **Verification of 'Exhaustive' Claims:** 
+    *"If you claim no 2-element magma satisfies the equation, you must provide the specific contradiction for the 'Left-Zero' ($a*b=a$) and 'Right-Zero' ($a*b=b$) cases explicitly in your reasoning."*
+
+5.  **Search Direction:**
+    *"Work from both sides. Transform Eq1 toward Eq2 for 5 steps, then transform Eq2 toward Eq1 for 5 steps. Look for a common intermediate term (The Bridge)."*
+
+--- Batch 30 Analysis ---
+Based on the meta-analysis of the provided dataset, here is a breakdown of why the models "give up" or fail to find a valid proof, followed by a Persistence Strategy to improve future prompt engineering.
+
+### 1. Search Depth
+**Finding:** Models exhibit extremely shallow equational search depths. They typically stop performing rigorous algebraic substitutions after **2 to 4 steps**. 
+**Behavior:** If basic substitutions (like setting `y = x` or `z = x`) do not immediately produce an expression that looks like the target equation, the model abandons symbolic manipulation. Instead of exploring deeper variable assignments, it pivots to writing "pseudo-proofs" using natural language assertions (e.g., Cases `hard_0088` and `hard_0147` where the model claims "It can be derived that..." without showing the work). Case `hard_0105` is an extreme example where the model gave up at step 0, providing an empty response.
+
+### 2. Missing Links
+**Finding:** The models consistently overlook **expansive and cross-substitutions**. 
+**Behavior:** The models are decent at *reduction* (simplifying a complex term down to `x` or `x * x`), but they fail to recognize when they need to apply an axiom in reverse (expanding a simple term into a complex one to match a target structure). Furthermore, they completely miss "heavy" substitutions—where a variable in the axiom must be replaced by an entire complex sub-expression from the target equation. Because they only try simple single-variable substitutions, they miss the bridge that connects the source and target.
+
+### 3. Local Optima
+**Finding:** Models get easily trapped in algebraic loops and lack a systematic backtracking mechanism.
+**Behavior:** Case `hard_0036` perfectly illustrates this. The model attempts several substitutions, expands terms, substitutes them back into each other, and realizes it is going in circles. It literally converses with itself mid-proof (*"Thus x * (y * (z * x)) = C? No."*). Having hit this local optimum of expanding and shrinking the same `x*x` term without getting closer to the goal, it panics and simply asserts *"Given the constraints, the identity holds,"* rather than backing up and trying a different substitution tree.
+
+### 4. Complexity Bias
+**Finding:** This is the most severe failure mode in the dataset. Models suffer from massive complexity bias, assuming that highly nested or complex equations imply a trivial system.
+**Behavior:** When EQ1 looks highly constraining and EQ2 looks structurally different, the model prematurely concludes that the equations can only be linked if the entire algebraic structure is trivial. Instead of proving the equations, the model hallucinates semantic meta-arguments:
+*   **"Singleton / Trivial Magma" claims:** In `hard_0149`, `hard_0094`, and `hard_0084`, the model falsely claims EQ1 forces the magma to have only one element.
+*   **"Global Constant" claims:** In `hard_0110`, the model incorrectly assumes the equation evaluates to a "universal global constant K."
+*   **"Finite Model" exhaustion:** In `hard_0024`, the model relies on an "exhaustive enumeration of the 16 possible tables on 2 elements" to assume the magma must be right-zero, which is an invalid proof method for infinite magmas.
+
+---
+
+### Recommended Output: "Persistence Strategy" (Prompt Guidelines)
+
+To force the model to explore alternative, non-obvious transformation paths and prevent it from giving up, your system prompt should incorporate the following directives:
+
+1. **Ban Semantic & Meta-Reasoning Shortcuts:**
+   * *Directive:* "You are strictly forbidden from proving the implication by claiming the magma is 'trivial', a 'singleton', 'right-zero', or evaluates to a 'global constant'. You must not use finite exhaustive enumeration (e.g., checking size-2 magmas) or set-theory logic. The proof must be 100% equational, relying ONLY on step-by-step substitution."
+
+2. **Force Explicit Unification (Deep Searching):**
+   * *Directive:* "Do not rely solely on simple substitutions like `y = x`. You must deliberately explore complex, 'heavy' substitutions. For every step, explicitly state your variable mapping (e.g., 'Substitute `y` with `(x * z)` and `z` with `(w * w)` in EQ1')."
+
+3. **Mandate Bidirectional Proof Construction:**
+   * *Directive:* "If you cannot reach EQ2 by forward-chaining from EQ1 within 3 steps, you must attempt backward-chaining. Look at the inner structure of EQ2 and ask: 'What term from EQ1 can be substituted into EQ2 to simplify it?' Connect the two paths to find the missing link."
+
+4. **Implement an Explicit Backtracking Protocol (Escaping Local Optima):**
+   * *Directive:* "If you find yourself expanding and reducing the same terms without moving closer to the target (looping), you must explicitly write '**BACKTRACK:**' and return to your last known useful lemma. From there, force yourself to try a completely different variable substitution that you have not attempted yet."
+
+5. **Generate and Prove Intermediate Lemmas:**
+   * *Directive:* "Do not attempt to jump straight from EQ1 to EQ2 if they are structurally distant. First, try to prove an intermediate structural Lemma (e.g., 'Lemma 1: `x * x = y * y`'). Prove the lemma equationally first, then use it as a tool to reach EQ2."
+
+--- Batch 31 Analysis ---
+Based on the provided dataset of failed proof searches, here is a meta-analysis of why the models "give up" on finding valid proofs, followed by a Persistence Strategy to improve prompting.
+
+### Meta-Analysis of Failed Proof Searches (False Negatives)
+
+**1. Search Depth: Extremely Shallow (0-2 Steps)**
+The model almost never explores the syntactic search space beyond 1 or 2 basic substitutions (such as $y=x$ or $z=x$). The moment the target equation does not immediately emerge, the search depth drops to zero, and the model completely abandons equational derivation.
+
+**2. Missing Links: Absence of Compound Substitutions**
+The model consistently overlooks "unobvious" or compound substitutions. In equational logic, proving an identity often requires substituting a variable with an entire expression (e.g., replacing $y$ with $(a * b) * c$) to trigger a cascading cancellation. The model misses this mechanical term-unification, opting instead for trivial variable collapsing, which rarely bridges the gap between complex equations.
+
+**3. Local Optima: The "Semantic/Singleton" Trap**
+Instead of getting stuck in a loop of term expansion, the model gets trapped in a **semantic local optimum**. When it encounters a highly restrictive axiom (e.g., `x = (y * x) * (x * (z * z))`), it heuristically deduces that the equation forces massive degeneracy, concluding that the only valid model is the trivial singleton magma ($|M|=1$). Since all elements are equal in a singleton magma, the model concludes the target equation is "vacuously true." This allows the model to mentally "solve" the problem without writing a single line of the required formal syntactic proof. 
+
+**4. Complexity Bias: Premature Structural Pigeonholing**
+The model exhibits severe complexity bias. When the target equation looks structurally dissimilar to the source axiom, the model prematurely gives up on step-by-step algebra. To bridge the gap, it hallucinates structural properties, pigeonholing the problem into known advanced algebraic theories—invoking "affine magmas," "Boolean groups," "Schröder's laws," or "quasigroups." It assumes the proof is too complex for basic algebra and relies on these high-level classifications to do the heavy lifting.
+
+---
+
+### The "Persistence Strategy" (Prompt Engineering Guide)
+
+To prevent the model from giving up and to force it to explore non-obvious transformation paths, your prompt should incorporate the following directives:
+
+*   **Ban Semantic Bailouts:** Explicitly forbid model-theoretic reasoning. 
+    * *Prompting text:* "You must provide a pure syntactic, step-by-step equational proof. Do NOT use semantic arguments. Do NOT analyze finite magmas, singleton magmas, or trivial models. Do NOT invoke structural classifications like quasigroups, Boolean groups, or affine magmas. You must prove the implication using only variable substitution and the transitive/symmetric properties of equality."
+*   **Mandate Lemma Generation (Sub-goals):** Force the model to build stepping stones rather than leaping to the final answer.
+    * *Prompting text:* "Do not attempt to reach the target equation in a single step. First, derive 3 to 5 intermediate lemmas. Focus on finding substitutions that isolate a variable, create an idempotent rule (e.g., $x * x = x$), or create an absorption rule."
+*   **Encourage "Term Inflation" (Compound Substitution):** Teach the model to look past trivial $x=y$ substitutions.
+    * *Prompting text:* "Explore deep, non-obvious substitutions. Do not just substitute variables with single letters. Try substituting a variable with a nested term from the axiom itself (e.g., replacing $z$ with $(x * y)$ or $x * (y * z)$) to force structural pattern matching."
+*   **Target-Driven Reverse Engineering:** Provide a framework for how the model should pick its substitutions.
+    * *Prompting text:* "Analyze the structural differences between Equation 1 and Equation 2. If Equation 2 contains a deeply nested term like $(((y * x) * y) * y)$, identify which variable in Equation 1 needs to be expanded into a complex term to mimic this nesting depth."
+*   **Enforce Backtracking:** Prevent the model from stopping when a path looks difficult.
+    * *Prompting text:* "If your current substitution path does not bring the equation closer to the target after 3 steps, do not declare the problem true via structural constraints. Backtrack to your original axiom and apply a completely different compound substitution."
+
+--- Batch 32 Analysis ---
+Based on the meta-analysis of the failed proof attempts provided (where models correctly identified the verdict as TRUE but provided logically flawed or "hallucinated" algebraic shortcuts), we can identify the specific patterns of failure and derive a strategy to improve model persistence and accuracy.
+
+### 1. Analysis of Failure Modes
+
+*   **Search Depth (The "Short-Circuit" Problem):** 
+    In almost every case (e.g., `hard_0180`, `hard_0128`), the model stopped searching for a step-by-step substitution proof after 2–3 logical steps. Instead of reaching the required depth (often 8–15 substitutions), models jumped to a high-level "functional" conclusion (e.g., "this must be a permutation group" or "this depends only on the second argument").
+*   **Missing Links (Substitution Blindness):** 
+    Models consistently overlooked the "unobvious" substitution where a variable is replaced by a complex term from the identity itself. For example, in `hard_0082`, the model failed to substitute $x$ with the entire RHS of the identity, which is often required to bridge the gap between $eq1$ and $eq2$.
+*   **Local Optima (The "Triviality Trap"):** 
+    A dominant failure pattern is the **Triviality Trap** (seen in `hard_0198`, `hard_0042`, `hard_0094`). Models get "stuck" on the idea that a complex identity must force the magma to be a singleton (a 1-element set). Once they convince themselves the magma is trivial, they stop searching for a general proof, as everything is true in a singleton.
+*   **Complexity Bias (The "Projection Bias"):** 
+    When Equation 2 involves different variables than Equation 1 (e.g., `hard_0080`), models often prematurely conclude that Equation 1 must imply a "projection" (e.g., $x*y = f(y)$). They simplify the structure of the magma to match the "feel" of the goal rather than deriving it.
+
+---
+
+### 2. Persistence Strategy: "Combinatorial Breadth & Constraint-Checking"
+
+To prevent models from giving up or hallucinating "shortcuts" like triviality, the following strategy should be incorporated into the prompting or reasoning framework:
+
+#### I. Explicit Substitution Branching
+Instead of seeking a single linear path, the model should be directed to generate and evaluate "Seed Substitutions."
+*   **Strategy:** Before concluding, the model must explicitly list and evaluate the result of replacing $x$ with $(x*x)$, $(y*x)$, and $(x*y)$. 
+*   **Goal:** This forces the model to see how the identity behaves under expansion, preventing the early "collapse" into a singleton assumption.
+
+#### II. The "Anti-Triviality" Check
+To break the Triviality Trap, the model must be challenged to consider a non-trivial counter-model before finalizing a "Singleton" proof.
+*   **Strategy:** If the model's reasoning suggests $|M|=1$, it must first attempt to find a 2-element magma that satisfies $eq1$. 
+*   **Goal:** By failing to find a 2-element counter-example, the model may find the actual "missing link" substitution that proves the implication properly, rather than assuming it.
+
+#### III. Transformation Invariants
+Encourage the model to identify "Term Invariants" before jumping to functional identities.
+*   **Strategy:** Ask: "Is there a sub-term in $eq1$ that can be replaced by $x$? If so, what does that imply about the injectivity of the operation?"
+*   **Goal:** This steers the model toward standard equational logic tools (like showing an operation is a permutation) without making the leap to "this must be the identity permutation."
+
+#### IV. Depth-First "Goal-Post" Searching
+Models often fail because they only work "forward" from $eq1$.
+*   **Strategy:** Require "Bi-directional Expansion." Expand the terms of $eq2$ using $eq1$ and expand $eq1$ toward the structure of $eq2$ simultaneously.
+*   **Goal:** This bridges the gap when $eq2$ looks "too different" from $eq1$, reducing complexity bias.
+
+### Summary Prompt for Models
+> "Do not assume the magma is trivial (a singleton) unless you can derive $x=y$ through a specific sequence of substitutions. Avoid jumping to functional conclusions like 'the operation depends only on $y$.' Instead, perform at least 10 steps of term-rewriting. Focus on replacing variables with sub-terms from the original identity (e.g., if $x = (y*x)$, try replacing $x$ with $(y*x)$ in the whole equation). If you feel stuck, try to find a substitution that creates a nested identity (e.g., $x * (x * x)$)."
+
+--- Batch 33 Analysis ---
+Based on the meta-analysis of the provided False Negative (FN) cases, here is the analysis of why the models failed and a resulting "Persistence Strategy."
+
+### 1. Search Depth: The "Three-Step Ceiling"
+In almost all failed cases (e.g., `hard_0008`, `hard_0184`, `hard_0009`), models stopped exploring the actual algebraic tree after **2 to 3 substitutions**. 
+*   **The Pattern:** The model identifies a high-level property (e.g., "The RHS is independent of $z$"), makes one substitution, and then immediately attempts to jump to a "Verdict." 
+*   **The Wall:** If a proof requires a "bridge" element (e.g., substituting a complex term into itself to find an idempotent), the models typically give up before reaching that depth, defaulting to a guess based on the "vibe" of the equation.
+
+### 2. Missing Links: The "Independence Trap"
+The most common missing link is the failure to handle **Functional Independence** correctly.
+*   **The Error:** When models see an equation like $x = ((x*x) * (y*z)) * y$ (`hard_0009`), they correctly note that since $z$ is arbitrary, $(y*z)$ can be treated as a "blob." 
+*   **The Missing Step:** They fail to realize that this "blob" must be an element within the *range* of the operation. Instead of exploring what that range is, they leap to the conclusion that the entire magma must be a "left-zero magma" ($x*y = x$) or a "constant magma." They miss the "substitution of the identity" link (e.g., replacing $z$ with a specific term that simplifies the expression without collapsing the whole system).
+
+### 3. Local Optima: The "Triviality Collapse"
+Models frequently get stuck in a **Triviality Loop**.
+*   **Observation:** When a model cannot find a path, it assumes the equational theory is **highly restrictive** (e.g., "all elements are right identities" in `hard_0008` or "all $x*x$ are a single constant $c$" in `hard_0172`).
+*   **The Result:** By assuming the magma is trivial (Left-Zero, Right-Zero, or Permutation-based), they "prove" the target equation easily. However, because they reached this through a logical over-simplification rather than a derivation, they lack the confidence to provide a valid proof, or they hallucinate that no other magmas exist.
+
+### 4. Complexity Bias: The "Nesting Tax"
+Equations with high nesting depth (e.g., `hard_0017`, `hard_0193`) resulted in **empty or truncated responses**.
+*   **Observation:** If the number of parentheses exceeds a certain "visual threshold," the model does not even attempt a first substitution. It either times out or provides a generic "no counterexample found" statement.
+
+---
+
+### Output: The Persistence Strategy
+To improve model performance on these "Hard" equational proofs, the prompt should be restructured to prevent "early collapse" and encourage exploration of non-trivial paths.
+
+#### **The "Algebraic Scaffolding" Prompt Strategy**
+
+**1. Mandate "Intermediate Identity" Discovery:**
+Instead of asking for a direct proof, instruct the model to first derive and list three "Intermediate Identities" (e.g., "Can you find a term that acts as a local identity? Can you prove $x*x = (x*x)*(x*x)$?"). This forces the search depth beyond the 3-step ceiling.
+
+**2. Anti-Triviality Constraint:**
+Explicitly warn the model: *"Do not assume the magma collapses to a Left-Zero, Right-Zero, or Constant magma unless you can prove $x*y = x$ or $x*y = y$ is the ONLY possible solution. Explore models where $x*y$ is non-trivial."*
+
+**3. The "Substitution Diversity" Rule:**
+Encourage "Non-Obvious" substitutions. Instruct the model to try three specific substitution types if they get stuck:
+*   **The Self-Substitution:** Replace $x$ with the entire RHS of the axiom.
+*   **The Identity Search:** Substitute $z$ such that a sub-term becomes $x$ or $y$.
+*   **The Variable Shadowing:** Replace $y$ with $(y*y)$ or $(x*y)$ to see if the structure repeats.
+
+**4. Range vs. Constant Distinction:**
+When a variable $z$ appears only on one side, instruct the model: *"Variable $z$ is arbitrary. This means the result holds for all $w$ in the Image(Operation). Do not assume the operation is constant; assume the property holds for all elements produced by the operation."*
+
+**5. Structural Transformation First:**
+For highly nested equations, require the model to rewrite the equation using operator notation (e.g., $L_x(y)$ for $x*y$) before attempting the proof. This often helps models "see" bijections or cancellations that are hidden by parentheses.
+
+--- Batch 35 Analysis ---
+Based on the provided dataset of failed proof attempts, a clear and consistent failure pattern emerges. Rather than failing due to simply "running out of steps," the models fail because they **abandon strict syntactic equational reasoning in favor of semantic, model-theoretic arguments.** 
+
+When the purely mechanical path isn't immediately obvious, the models act like human algebraists trying to classify the algebraic structure (e.g., "this must be a trivial magma" or "this implies surjectivity") instead of acting like automated theorem provers. Because the evaluation system expects a rigorous, step-by-step equational derivation, these semantic arguments are scored as `false`.
+
+Here is the meta-analysis of these failures, followed by a Persistence Strategy to fix the prompting.
+
+### 1. Search Depth (Premature Abandonment)
+**Finding:** The models typically abandon formal equational search after **depth 0 to 2**. 
+As soon as a single basic substitution (like setting $y=x$) doesn't yield the target or a clear path, the model gives up on rewriting. Instead of trying deeper substitutions, it jumps to macroscopic conclusions. For example, in `hard_0192` and `hard_0026`, the model immediately resorts to citing "exhaustive enumeration of small finite magmas" to guess the verdict, completely bypassing the proof search. 
+
+### 2. Missing Links (Overlooking Self-Substitution)
+**Finding:** The models consistently overlook **"term bloat" substitutions**—specifically, substituting an entire complex axiom into a single variable of itself. 
+Because the models try to find a direct, elegant path to the target, they miss the unobvious counter-intuitive steps where terms must grow drastically before they can collapse. In `hard_0182` and `hard_0140`, the models conceptually realize that the axiom acts as a "generalized left-identity" or "right-zero," but they lack the mechanical linkage (unification) to prove it. They state "we can systematically substitute..." but fail to actually perform the substitutions.
+
+### 3. Local Optima (Semantic Traps & Classification)
+**Finding:** The models get trapped in the local optimum of **magma classification**. 
+Instead of manipulating strings of symbols to prove `Eq1` implies `Eq2`, the models try to prove that `Eq1` forces the magma to belong to a specific family. 
+- In `hard_0024`, the model gets stuck analyzing permutations and identity maps ($\phi_c$).
+- In `hard_0053`, it classifies the structure as a "left-constant magma."
+- In `hard_0017` and `hard_0099`, it gets trapped proving the magma is "trivial" ($|M|=1$).
+While mathematically interesting, this reasoning bypasses the step-by-step equational proof required to satisfy a formal checker. 
+
+### 4. Complexity Bias (Hallucinating Standard Axioms)
+**Finding:** When the target equation looks structurally similar to the current term but has different grouping, the model's complexity bias causes it to **hallucinate associativity or commutativity** to bridge the gap and declare victory.
+- In `hard_0152`, the model correctly substitutes variables to reach $x = (y * ((y * z) * y)) * x$. However, because the target requires a different grouping, the model simply states "which simplifies to $x = (((y * z) * y) * y) * x$." It illegally shifted the parentheses, falsely assuming associativity in a raw magma. 
+
+---
+
+### The "Persistence Strategy" (Prompt Engineering Guidelines)
+
+To prevent the model from giving up or hallucinating, the prompt must explicitly constrain its behavior to act as a strict syntactic rewrite engine. Append the following directives to your prompt:
+
+**1. FORBID SEMANTIC & MODEL-THEORETIC REASONING:**
+> "Do not use semantic arguments, model theory, or algebraic classification. Do not define functions, permutations, bijections, or argue about 'trivial magmas', 'left-constant magmas', or finite orders. Your proof must consist **exclusively** of step-by-step syntactic term rewriting."
+
+**2. EMBRACE 'TERM BLOAT' (DEEP SEARCH):**
+> "Do not give up if the equation becomes highly complex. Valid equational proofs often require terms to expand drastically (term bloat) before they can collapse into the target equation. You must be willing to substitute the entire LHS/RHS of the axiom into a single variable of itself. Explore paths up to at least 10 substitutions."
+
+**3. STRICT PARENTHESIS TRACKING (NO HALLUCINATIONS):**
+> "You are working in a raw magma. **Associativity and commutativity DO NOT exist** unless explicitly derived. You cannot shift parentheses. $a * (b * c)$ is completely different from $(a * b) * c$. Every single transformation must be justified by a direct substitution of the given axiom."
+
+**4. MANDATE EXPLICIT SUBSTITUTION FORMAT:**
+> "For every step in your proof, you must explicitly state the substitution mapping and the resulting equation. Use the format:
+> *Step X: Substitute [variable] = [term] into [Equation/Step Y].*
+> *Result: [Exact string with matched parentheses].*
+> If you cannot reach the target equation through pure string substitution, you have not found a valid proof."
